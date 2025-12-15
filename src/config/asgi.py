@@ -9,10 +9,20 @@ https://docs.djangoproject.com/en/4.2/howto/deployment/asgi/
 
 import os
 
-from django.core.asgi import get_asgi_application
-
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 
-# Get the default Django ASGI application
-application = get_asgi_application()
+# Initialize Django ASGI application early to ensure apps are loaded
+from django.core.asgi import get_asgi_application
+django_asgi_app = get_asgi_application()
+
+# Import gRPC components
+from django_socio_grpc.grpc_web import grpcASGI
+from config.grpc_handlers import grpc_handlers
+
+# Create gRPC-Web ASGI application
+application = grpcASGI(django_asgi_app)
+
+# Register gRPC services by calling grpc_handlers with the grpcASGI instance
+# Note: Proto files must be generated first with: python manage.py generateproto
+grpc_handlers(application)
 

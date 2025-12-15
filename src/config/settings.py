@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'django_socio_grpc',
     'core',
     'git',
@@ -51,6 +52,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -154,4 +156,39 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 
 # Git configuration
 GIT_REPOS_DIR = os.getenv('GIT_REPOS_DIR', '/git')
+
+# gRPC Framework configuration
+GRPC_FRAMEWORK = {
+    'GRPC_ASYNC': True,
+    'GRPC_CHANNEL_PORT': 8000,
+    'ROOT_HANDLERS_HOOK': 'config.grpc_handlers.grpc_handlers',
+}
+
+# CORS configuration
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'x-grpc-web',
+    'grpc-timeout',
+]
+
+CORS_EXPOSE_HEADERS = [
+    'grpc-status',
+    'grpc-message',
+    'grpc-status-details-bin',
+]
 
