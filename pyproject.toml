@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "spienx-hub"
+version = "0.1.0"
+description = "Spienx Hub - Django Project"
+authors = ["Developer <dev@spienx.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+django = "^4.2"
+python-dotenv = "^1.2.1"
+django-socio-grpc = {git = "https://github.com/tastenmo/django-socio-grpc.git"}
+celery = "^5.6.0"
+redis = "^5.0.0"
+psycopg2-binary = "^2.9.11"
+dj-database-url = "^3.0.1"
+daphne = "^4.2.1"
+gitpython = "^3.1.45"
+django-celery-beat = "^2.5.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^9.0.2"
+pytest-django = "^4.11.1"
+
+[build-system]
+requires = ["poetry-core>=2.0.0"]
+build-backend = "poetry.core.masonry.api"

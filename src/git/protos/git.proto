@@ -1,0 +1,133 @@
+syntax = "proto3";
+
+package git;
+
+service GitService {
+    rpc CreateRepository(CreateRepositoryRequest) returns (RepositoryResponse);
+    rpc GetRepository(GetRepositoryRequest) returns (RepositoryResponse);
+    rpc ListRepositories(ListRepositoriesRequest) returns (RepositoryListResponse);
+    rpc MigrateRepository(MigrateRepositoryRequest) returns (MigrationResponse);
+    rpc SyncRepository(SyncRepositoryRequest) returns (SyncResponse);
+    rpc DeleteRepository(DeleteRepositoryRequest) returns (DeleteResponse);
+    rpc GetRepositoryBranches(GetRepositoryRequest) returns (BranchListResponse);
+    rpc GetRepositoryCommits(GetRepositoryCommitsRequest) returns (CommitListResponse);
+}
+
+message Repository {
+    int32 id = 1;
+    string name = 2;
+    string description = 3;
+    string source_url = 4;
+    string source_type = 5;
+    string local_path = 6;
+    string status = 7;
+    bool is_mirror = 8;
+    bool is_bare = 9;
+    string default_branch = 10;
+    string last_synced_at = 11;
+    string last_commit_hash = 12;
+    int32 total_commits = 13;
+    bool is_public = 14;
+    string created_at = 15;
+    string updated_at = 16;
+    int32 organisation_id = 17;
+}
+
+message CreateRepositoryRequest {
+    string name = 1;
+    string description = 2;
+    string source_url = 3;
+    string source_type = 4;
+    int32 organisation_id = 5;
+    bool is_public = 6;
+}
+
+message GetRepositoryRequest {
+    int32 id = 1;
+}
+
+message ListRepositoriesRequest {
+    int32 organisation_id = 1;
+    string status = 2;
+    int32 limit = 3;
+    int32 offset = 4;
+}
+
+message RepositoryResponse {
+    Repository repository = 1;
+    string message = 2;
+}
+
+message RepositoryListResponse {
+    repeated Repository repositories = 1;
+    int32 total_count = 2;
+}
+
+message MigrateRepositoryRequest {
+    int32 repository_id = 1;
+    string source_url = 2;
+    bool force = 3;
+}
+
+message MigrationResponse {
+    int32 repository_id = 1;
+    string status = 2;
+    string message = 3;
+    string task_id = 4;
+}
+
+message SyncRepositoryRequest {
+    int32 repository_id = 1;
+}
+
+message SyncResponse {
+    int32 repository_id = 1;
+    string status = 2;
+    int32 commits_synced = 3;
+    string message = 4;
+    string task_id = 5;
+}
+
+message DeleteRepositoryRequest {
+    int32 repository_id = 1;
+    bool force = 2;
+}
+
+message DeleteResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message Branch {
+    string name = 1;
+    string commit_hash = 2;
+    bool is_default = 3;
+    string last_updated = 4;
+}
+
+message BranchListResponse {
+    int32 repository_id = 1;
+    repeated Branch branches = 2;
+    int32 total_count = 3;
+}
+
+message Commit {
+    string commit_hash = 1;
+    string author_name = 2;
+    string author_email = 3;
+    string message = 4;
+    string committed_at = 5;
+}
+
+message GetRepositoryCommitsRequest {
+    int32 repository_id = 1;
+    string branch = 2;
+    int32 limit = 3;
+    int32 offset = 4;
+}
+
+message CommitListResponse {
+    int32 repository_id = 1;
+    repeated Commit commits = 2;
+    int32 total_count = 3;
+}

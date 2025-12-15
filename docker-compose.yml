@@ -1,0 +1,116 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: spienx-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-spienx_db}
+      POSTGRES_USER: ${POSTGRES_USER:-spienx}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-spienx_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-spienx}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - spienx-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: spienx-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - spienx-network
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: spienx-web
+    environment:
+      DEBUG: ${DEBUG:-False}
+      SECRET_KEY: ${SECRET_KEY:-django-insecure-change-me-in-production}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,web}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-spienx}:${POSTGRES_PASSWORD:-spienx_password}@postgres:5432/${POSTGRES_DB:-spienx_db}
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - git_repos:/git
+    working_dir: /app/src
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      sh -c "poetry run python manage.py migrate &&
+             poetry run daphne -b 0.0.0.0 -p 8000 config.asgi:application"
+    networks:
+      - spienx-network
+
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: spienx-celery
+    environment:
+      DEBUG: ${DEBUG:-False}
+      SECRET_KEY: ${SECRET_KEY:-django-insecure-change-me-in-production}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,web}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-spienx}:${POSTGRES_PASSWORD:-spienx_password}@postgres:5432/${POSTGRES_DB:-spienx_db}
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    volumes:
+      - .:/app
+      - git_repos:/git
+    working_dir: /app/src
+    command: poetry run celery -A config worker -l info
+    networks:
+      - spienx-network
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: spienx-celery-beat
+    environment:
+      DEBUG: ${DEBUG:-False}
+      SECRET_KEY: ${SECRET_KEY:-django-insecure-change-me-in-production}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,web}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-spienx}:${POSTGRES_PASSWORD:-spienx_password}@postgres:5432/${POSTGRES_DB:-spienx_db}
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    volumes:
+      - .:/app
+      - git_repos:/git
+    working_dir: /app/src
+    command: poetry run celery -A config beat -l info
+    networks:
+      - spienx-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  git_repos:
+    driver: local
+
+networks:
+  spienx-network:
+    driver: bridge
+
