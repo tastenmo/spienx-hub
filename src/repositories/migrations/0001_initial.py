@@ -38,6 +38,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'ordering': ['-created_at'],
+                'indexes': [models.Index(fields=['organisation', 'status'], name='repos_gitrepo_org_status_idx'), models.Index(fields=['source_url'], name='repos_gitrepo_source_url_idx'), models.Index(fields=['status'], name='repos_gitrepo_status_idx')],
             },
         ),
         migrations.CreateModel(
@@ -54,6 +55,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'ordering': ['-committed_at'],
+                'indexes': [models.Index(fields=['repository', 'committed_at'], name='repos_gitcommit_repo_date_idx'), models.Index(fields=['author_email'], name='repos_gitcommit_email_idx')],
             },
         ),
         migrations.CreateModel(
@@ -68,6 +70,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'ordering': ['name'],
+                'indexes': [models.Index(fields=['repository', 'is_default'], name='repos_gitbranch_repo_def_idx')],
             },
         ),
         migrations.CreateModel(
@@ -85,40 +88,16 @@ class Migration(migrations.Migration):
             ],
             options={
                 'ordering': ['-created_at'],
-                'indexes': [models.Index(fields=['repository', 'status'], name='git_synctas_reposit_355ddd_idx'), models.Index(fields=['status'], name='git_synctas_status_4745a0_idx')],
+                'indexes': [models.Index(fields=['repository', 'status'], name='repos_synctask_repo_status_idx'), models.Index(fields=['status'], name='repos_synctask_status_idx')],
             },
-        ),
-        migrations.AddIndex(
-            model_name='gitrepository',
-            index=models.Index(fields=['organisation', 'status'], name='git_gitrepo_organis_1aca7a_idx'),
-        ),
-        migrations.AddIndex(
-            model_name='gitrepository',
-            index=models.Index(fields=['source_url'], name='git_gitrepo_source__1c48d3_idx'),
-        ),
-        migrations.AddIndex(
-            model_name='gitrepository',
-            index=models.Index(fields=['status'], name='git_gitrepo_status_27887c_idx'),
         ),
         migrations.AlterUniqueTogether(
             name='gitrepository',
             unique_together={('organisation', 'name')},
         ),
-        migrations.AddIndex(
-            model_name='gitcommit',
-            index=models.Index(fields=['repository', 'committed_at'], name='git_gitcomm_reposit_689ec2_idx'),
-        ),
-        migrations.AddIndex(
-            model_name='gitcommit',
-            index=models.Index(fields=['author_email'], name='git_gitcomm_author__b9bbfd_idx'),
-        ),
         migrations.AlterUniqueTogether(
             name='gitcommit',
             unique_together={('repository', 'commit_hash')},
-        ),
-        migrations.AddIndex(
-            model_name='gitbranch',
-            index=models.Index(fields=['repository', 'is_default'], name='git_gitbran_reposit_509e79_idx'),
         ),
         migrations.AlterUniqueTogether(
             name='gitbranch',

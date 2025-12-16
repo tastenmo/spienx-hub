@@ -27,7 +27,7 @@ class GitRepositorySerializer(proto_serializers.ModelProtoSerializer):
         
         # Generate local_path
         # Default to a 'repos' directory in the base dir if not configured
-        base_dir = getattr(settings, 'GIT_REPOS_ROOT', os.path.join(settings.BASE_DIR, 'repos'))
+        base_dir = getattr(settings, 'GIT_REPOS_DIR', os.path.join(settings.BASE_DIR, 'repos'))
         
         organisation = validated_data.get('organisation')
         name = validated_data.get('name')
@@ -66,7 +66,7 @@ class GitRepositoryCreationService(generics.GenericService):
         from django.conf import settings
         from repositories.models import GitRepository
         from accounts.models import Organisation
-        base_dir = getattr(settings, 'GIT_REPOS_ROOT', os.path.join(settings.BASE_DIR, 'repos'))
+        base_dir = getattr(settings, 'GIT_REPOS_DIR', os.path.join(settings.BASE_DIR, 'repos'))
         organisation = await Organisation.objects.aget(id=request.organisation_id)
         safe_name = "".join([c for c in request.name if c.isalnum() or c in ('-', '_')])
         local_path = os.path.join(base_dir, safe_name)
