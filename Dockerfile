@@ -16,6 +16,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     git-lfs \
     curl \
+    fcgiwrap \
+    spawn-fcgi \
     && rm -rf /var/lib/apt/lists/* \
     && git config --global user.email "docker@spienx.com" \
     && git config --global user.name "Spienx Docker"

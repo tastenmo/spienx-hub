@@ -43,12 +43,13 @@ services:
     environment:
       DEBUG: ${DEBUG:-False}
       SECRET_KEY: ${SECRET_KEY:-django-insecure-change-me-in-production}
-      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,web}
+      ALLOWED_HOSTS: localhost,127.0.0.1,web,hub.tastenmo.de
       DATABASE_URL: postgresql://${POSTGRES_USER:-spienx}:${POSTGRES_PASSWORD:-spienx_password}@postgres:5432/${POSTGRES_DB:-spienx_db}
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
     ports:
       - "8000:8000"
+      - "9001:9001"
     volumes:
       - .:/app
       - git_repos:/git
@@ -59,7 +60,8 @@ services:
       redis:
         condition: service_healthy
     command: >
-      sh -c "poetry run python manage.py migrate &&
+      sh -c "spawn-fcgi -p 9001 -n /usr/sbin/fcgiwrap &
+             poetry run python manage.py migrate &&
              poetry run daphne -b 0.0.0.0 -p 8000 config.asgi:application"
     networks:
       - spienx-network
