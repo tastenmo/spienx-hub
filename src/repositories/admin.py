@@ -1,5 +1,5 @@
 from django.contrib import admin
-from git.models import GitRepository, GitBranch, GitCommit, SyncTask
+from repositories.models import GitRepository, GitBranch, GitCommit, SyncTask
 
 
 @admin.register(GitRepository)

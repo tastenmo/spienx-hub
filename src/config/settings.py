@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_socio_grpc',
     'core',
-    'git',
+    'repositories',
     'accounts',
 ]
 

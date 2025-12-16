@@ -2,7 +2,7 @@
 gRPC handlers registration for git app
 """
 
-from git.services import GitRepositoryService
+from repositories.services import GitRepositoryService, GitRepositoryCreationService
 
 
 def grpc_handlers(server):

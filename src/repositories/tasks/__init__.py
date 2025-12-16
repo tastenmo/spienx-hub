@@ -1,6 +1,6 @@
 from celery import shared_task
 import os
-from git.models import GitRepository, SyncTask
+from repositories.models import GitRepository, SyncTask
 from django.utils import timezone
 import logging
 
@@ -8,18 +8,11 @@ logger = logging.getLogger(__name__)
 
 GIT_REPOS_DIR = os.getenv('GIT_REPOS_DIR', '/git')
 
+from git import Repo
+
 # Helper function to get GitPython Repo class
 def _get_gitpython_repo():
     """Dynamically import GitPython Repo to avoid namespace collision"""
-    import sys
-    # Save our git app if it's loaded
-    git_app = sys.modules.pop('git', None)
-    try:
-        from git import Repo
-    finally:
-        # Restore our git app
-        if git_app:
-            sys.modules['git'] = git_app
     return Repo
 
 

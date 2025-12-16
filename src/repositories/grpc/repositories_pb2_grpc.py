@@ -3,8 +3,8 @@
 import grpc
 import warnings
 
-from git.grpc import git_pb2 as git_dot_grpc_dot_git__pb2
 from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
+from repositories.grpc import repositories_pb2 as repositories_dot_grpc_dot_repositories__pb2
 
 GRPC_GENERATED_VERSION = '1.76.0'
 GRPC_VERSION = grpc.__version__
@@ -19,7 +19,7 @@ except ImportError:
 if _version_not_supported:
     raise RuntimeError(
         f'The grpc package installed is at version {GRPC_VERSION},'
-        + ' but the generated code in git/grpc/git_pb2_grpc.py depends on'
+        + ' but the generated code in repositories/grpc/repositories_pb2_grpc.py depends on'
         + f' grpcio>={GRPC_GENERATED_VERSION}.'
         + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
@@ -36,34 +36,34 @@ class GitRepositoryControllerStub(object):
             channel: A grpc.Channel.
         """
         self.Create = channel.unary_unary(
-                '/git.git.GitRepositoryController/Create',
-                request_serializer=git_dot_grpc_dot_git__pb2.GitRepositoryRequest.SerializeToString,
-                response_deserializer=git_dot_grpc_dot_git__pb2.GitRepositoryResponse.FromString,
+                '/config.repositories.GitRepositoryController/Create',
+                request_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryRequest.SerializeToString,
+                response_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.FromString,
                 _registered_method=True)
         self.Destroy = channel.unary_unary(
-                '/git.git.GitRepositoryController/Destroy',
-                request_serializer=git_dot_grpc_dot_git__pb2.GitRepositoryDestroyRequest.SerializeToString,
+                '/config.repositories.GitRepositoryController/Destroy',
+                request_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryDestroyRequest.SerializeToString,
                 response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
                 _registered_method=True)
         self.List = channel.unary_unary(
-                '/git.git.GitRepositoryController/List',
-                request_serializer=git_dot_grpc_dot_git__pb2.GitRepositoryListRequest.SerializeToString,
-                response_deserializer=git_dot_grpc_dot_git__pb2.GitRepositoryListResponse.FromString,
+                '/config.repositories.GitRepositoryController/List',
+                request_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListRequest.SerializeToString,
+                response_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListResponse.FromString,
                 _registered_method=True)
         self.PartialUpdate = channel.unary_unary(
-                '/git.git.GitRepositoryController/PartialUpdate',
-                request_serializer=git_dot_grpc_dot_git__pb2.GitRepositoryPartialUpdateRequest.SerializeToString,
-                response_deserializer=git_dot_grpc_dot_git__pb2.GitRepositoryResponse.FromString,
+                '/config.repositories.GitRepositoryController/PartialUpdate',
+                request_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryPartialUpdateRequest.SerializeToString,
+                response_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.FromString,
                 _registered_method=True)
         self.Retrieve = channel.unary_unary(
-                '/git.git.GitRepositoryController/Retrieve',
-                request_serializer=git_dot_grpc_dot_git__pb2.GitRepositoryRetrieveRequest.SerializeToString,
-                response_deserializer=git_dot_grpc_dot_git__pb2.GitRepositoryResponse.FromString,
+                '/config.repositories.GitRepositoryController/Retrieve',
+                request_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryRetrieveRequest.SerializeToString,
+                response_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.FromString,
                 _registered_method=True)
         self.Update = channel.unary_unary(
-                '/git.git.GitRepositoryController/Update',
-                request_serializer=git_dot_grpc_dot_git__pb2.GitRepositoryRequest.SerializeToString,
-                response_deserializer=git_dot_grpc_dot_git__pb2.GitRepositoryResponse.FromString,
+                '/config.repositories.GitRepositoryController/Update',
+                request_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryRequest.SerializeToString,
+                response_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.FromString,
                 _registered_method=True)
 
 
@@ -111,39 +111,39 @@ def add_GitRepositoryControllerServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'Create': grpc.unary_unary_rpc_method_handler(
                     servicer.Create,
-                    request_deserializer=git_dot_grpc_dot_git__pb2.GitRepositoryRequest.FromString,
-                    response_serializer=git_dot_grpc_dot_git__pb2.GitRepositoryResponse.SerializeToString,
+                    request_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryRequest.FromString,
+                    response_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.SerializeToString,
             ),
             'Destroy': grpc.unary_unary_rpc_method_handler(
                     servicer.Destroy,
-                    request_deserializer=git_dot_grpc_dot_git__pb2.GitRepositoryDestroyRequest.FromString,
+                    request_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryDestroyRequest.FromString,
                     response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
             ),
             'List': grpc.unary_unary_rpc_method_handler(
                     servicer.List,
-                    request_deserializer=git_dot_grpc_dot_git__pb2.GitRepositoryListRequest.FromString,
-                    response_serializer=git_dot_grpc_dot_git__pb2.GitRepositoryListResponse.SerializeToString,
+                    request_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListRequest.FromString,
+                    response_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListResponse.SerializeToString,
             ),
             'PartialUpdate': grpc.unary_unary_rpc_method_handler(
                     servicer.PartialUpdate,
-                    request_deserializer=git_dot_grpc_dot_git__pb2.GitRepositoryPartialUpdateRequest.FromString,
-                    response_serializer=git_dot_grpc_dot_git__pb2.GitRepositoryResponse.SerializeToString,
+                    request_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryPartialUpdateRequest.FromString,
+                    response_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.SerializeToString,
             ),
             'Retrieve': grpc.unary_unary_rpc_method_handler(
                     servicer.Retrieve,
-                    request_deserializer=git_dot_grpc_dot_git__pb2.GitRepositoryRetrieveRequest.FromString,
-                    response_serializer=git_dot_grpc_dot_git__pb2.GitRepositoryResponse.SerializeToString,
+                    request_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryRetrieveRequest.FromString,
+                    response_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.SerializeToString,
             ),
             'Update': grpc.unary_unary_rpc_method_handler(
                     servicer.Update,
-                    request_deserializer=git_dot_grpc_dot_git__pb2.GitRepositoryRequest.FromString,
-                    response_serializer=git_dot_grpc_dot_git__pb2.GitRepositoryResponse.SerializeToString,
+                    request_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryRequest.FromString,
+                    response_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'git.git.GitRepositoryController', rpc_method_handlers)
+            'config.repositories.GitRepositoryController', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('git.git.GitRepositoryController', rpc_method_handlers)
+    server.add_registered_method_handlers('config.repositories.GitRepositoryController', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
@@ -164,9 +164,9 @@ class GitRepositoryController(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/git.git.GitRepositoryController/Create',
-            git_dot_grpc_dot_git__pb2.GitRepositoryRequest.SerializeToString,
-            git_dot_grpc_dot_git__pb2.GitRepositoryResponse.FromString,
+            '/config.repositories.GitRepositoryController/Create',
+            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryRequest.SerializeToString,
+            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -191,8 +191,8 @@ class GitRepositoryController(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/git.git.GitRepositoryController/Destroy',
-            git_dot_grpc_dot_git__pb2.GitRepositoryDestroyRequest.SerializeToString,
+            '/config.repositories.GitRepositoryController/Destroy',
+            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryDestroyRequest.SerializeToString,
             google_dot_protobuf_dot_empty__pb2.Empty.FromString,
             options,
             channel_credentials,
@@ -218,9 +218,9 @@ class GitRepositoryController(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/git.git.GitRepositoryController/List',
-            git_dot_grpc_dot_git__pb2.GitRepositoryListRequest.SerializeToString,
-            git_dot_grpc_dot_git__pb2.GitRepositoryListResponse.FromString,
+            '/config.repositories.GitRepositoryController/List',
+            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListRequest.SerializeToString,
+            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -245,9 +245,9 @@ class GitRepositoryController(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/git.git.GitRepositoryController/PartialUpdate',
-            git_dot_grpc_dot_git__pb2.GitRepositoryPartialUpdateRequest.SerializeToString,
-            git_dot_grpc_dot_git__pb2.GitRepositoryResponse.FromString,
+            '/config.repositories.GitRepositoryController/PartialUpdate',
+            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryPartialUpdateRequest.SerializeToString,
+            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -272,9 +272,9 @@ class GitRepositoryController(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/git.git.GitRepositoryController/Retrieve',
-            git_dot_grpc_dot_git__pb2.GitRepositoryRetrieveRequest.SerializeToString,
-            git_dot_grpc_dot_git__pb2.GitRepositoryResponse.FromString,
+            '/config.repositories.GitRepositoryController/Retrieve',
+            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryRetrieveRequest.SerializeToString,
+            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -299,9 +299,81 @@ class GitRepositoryController(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/git.git.GitRepositoryController/Update',
-            git_dot_grpc_dot_git__pb2.GitRepositoryRequest.SerializeToString,
-            git_dot_grpc_dot_git__pb2.GitRepositoryResponse.FromString,
+            '/config.repositories.GitRepositoryController/Update',
+            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryRequest.SerializeToString,
+            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+
+class GitRepositoryCreationControllerStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.Init = channel.unary_unary(
+                '/config.repositories.GitRepositoryCreationController/Init',
+                request_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryCreationInitRequest.SerializeToString,
+                response_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryCreationInitResponse.FromString,
+                _registered_method=True)
+
+
+class GitRepositoryCreationControllerServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def Init(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_GitRepositoryCreationControllerServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'Init': grpc.unary_unary_rpc_method_handler(
+                    servicer.Init,
+                    request_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryCreationInitRequest.FromString,
+                    response_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryCreationInitResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'config.repositories.GitRepositoryCreationController', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('config.repositories.GitRepositoryCreationController', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class GitRepositoryCreationController(object):
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def Init(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.GitRepositoryCreationController/Init',
+            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryCreationInitRequest.SerializeToString,
+            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryCreationInitResponse.FromString,
             options,
             channel_credentials,
             insecure,

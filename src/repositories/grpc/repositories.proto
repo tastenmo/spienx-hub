@@ -1,0 +1,98 @@
+syntax = "proto3";
+
+package config.repositories;
+
+import "google/protobuf/empty.proto";
+
+service GitRepositoryController {
+    rpc Create(GitRepositoryRequest) returns (GitRepositoryResponse) {}
+    rpc Destroy(GitRepositoryDestroyRequest) returns (google.protobuf.Empty) {}
+    rpc List(GitRepositoryListRequest) returns (GitRepositoryListResponse) {}
+    rpc PartialUpdate(GitRepositoryPartialUpdateRequest) returns (GitRepositoryResponse) {}
+    rpc Retrieve(GitRepositoryRetrieveRequest) returns (GitRepositoryResponse) {}
+    rpc Update(GitRepositoryRequest) returns (GitRepositoryResponse) {}
+}
+
+service GitRepositoryCreationController {
+    rpc Init(GitRepositoryCreationInitRequest) returns (GitRepositoryCreationInitResponse) {}
+}
+
+message GitRepositoryCreationInitRequest {
+    string name = 1;
+    int64 organisation_id = 2;
+    string description = 3;
+}
+
+message GitRepositoryCreationInitResponse {
+    int64 id = 1;
+    string local_path = 2;
+}
+
+message GitRepositoryDestroyRequest {
+    int64 id = 1;
+}
+
+message GitRepositoryListRequest {
+}
+
+message GitRepositoryListResponse {
+    repeated GitRepositoryResponse results = 1;
+}
+
+message GitRepositoryPartialUpdateRequest {
+    optional int64 id = 1;
+    repeated string _partial_update_fields = 2;
+    string name = 3;
+    optional string description = 4;
+    string source_url = 5;
+    optional string source_type = 6;
+    optional string status = 7;
+    optional bool is_mirror = 8;
+    optional bool is_bare = 9;
+    optional string default_branch = 10;
+    optional bool is_public = 11;
+    int64 organisation = 12;
+    optional int64 owner = 13;
+}
+
+message GitRepositoryRequest {
+    optional int64 id = 1;
+    string name = 2;
+    optional string description = 3;
+    string source_url = 4;
+    optional string source_type = 5;
+    optional string status = 6;
+    optional bool is_mirror = 7;
+    optional bool is_bare = 8;
+    optional string default_branch = 9;
+    optional bool is_public = 10;
+    int64 organisation = 11;
+    optional int64 owner = 12;
+}
+
+message GitRepositoryResponse {
+    optional int64 id = 1;
+    string name = 2;
+    optional string description = 3;
+    string source_url = 4;
+    optional string source_type = 5;
+    optional string local_path = 6;
+    optional string status = 7;
+    optional bool is_mirror = 8;
+    optional bool is_bare = 9;
+    optional string default_branch = 10;
+    optional string last_synced_at = 11;
+    optional string last_commit_hash = 12;
+    optional int32 total_commits = 13;
+    optional bool is_public = 14;
+    optional string created_at = 15;
+    optional string updated_at = 16;
+    optional string error_message = 17;
+    int64 organisation = 18;
+    optional int64 owner = 19;
+}
+
+message GitRepositoryRetrieveRequest {
+    int64 id = 1;
+}
+

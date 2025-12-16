@@ -50,7 +50,7 @@ class Migration(migrations.Migration):
                 ('message', models.TextField()),
                 ('committed_at', models.DateTimeField()),
                 ('synced_at', models.DateTimeField(auto_now_add=True)),
-                ('repository', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='commits', to='git.gitrepository')),
+                ('repository', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='commits', to='repositories.gitrepository')),
             ],
             options={
                 'ordering': ['-committed_at'],
@@ -64,7 +64,7 @@ class Migration(migrations.Migration):
                 ('commit_hash', models.CharField(max_length=40)),
                 ('is_default', models.BooleanField(default=False)),
                 ('last_updated', models.DateTimeField(auto_now=True)),
-                ('repository', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='branches', to='git.gitrepository')),
+                ('repository', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='branches', to='repositories.gitrepository')),
             ],
             options={
                 'ordering': ['name'],
@@ -81,7 +81,7 @@ class Migration(migrations.Migration):
                 ('commits_synced', models.IntegerField(default=0)),
                 ('task_id', models.CharField(blank=True, help_text='Celery task ID', max_length=255, unique=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('repository', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sync_tasks', to='git.gitrepository')),
+                ('repository', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sync_tasks', to='repositories.gitrepository')),
             ],
             options={
                 'ordering': ['-created_at'],

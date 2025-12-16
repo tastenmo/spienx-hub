@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
-from git.models import GitRepository, GitBranch, GitCommit, SyncTask
+from repositories.models import GitRepository, GitBranch, GitCommit, SyncTask
 from accounts.models import Organisation, UserProfile
 import uuid
 

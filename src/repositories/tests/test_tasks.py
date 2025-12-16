@@ -1,6 +1,6 @@
 from django.test import TestCase
-from git.models import GitRepository, SyncTask
-from git.tasks import initialize_repository, migrate_repository, sync_repository
+from repositories.models import GitRepository, SyncTask
+from repositories.tasks import initialize_repository, migrate_repository, sync_repository
 from accounts.models import Organisation
 from django.contrib.auth.models import User
 from unittest.mock import patch, MagicMock
