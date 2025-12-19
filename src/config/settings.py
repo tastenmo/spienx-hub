@@ -169,6 +169,7 @@ GRPC_FRAMEWORK = {
     'GRPC_ASYNC': True,
     'GRPC_CHANNEL_PORT': 8000,
     'ROOT_HANDLERS_HOOK': 'config.grpc_handlers.grpc_handlers',
+    'ROOT_GRPC_FOLDER': BASE_DIR,  # Set to src/ directory for proper proto generation
 }
 
 # CORS configuration
@@ -199,4 +200,7 @@ CORS_EXPOSE_HEADERS = [
     'grpc-message',
     'grpc-status-details-bin',
 ]
+
+# Git repository settings
+GIT_DOMAIN = os.getenv('GIT_DOMAIN', 'hub.tastenmo.de')
 

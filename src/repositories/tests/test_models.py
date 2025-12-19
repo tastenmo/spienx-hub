@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
-from repositories.models import GitRepository, GitBranch, GitCommit, SyncTask
+from repositories.models import GitRepository, GitMirrorRepository, SyncTask
 from accounts.models import Organisation, UserProfile
 import uuid
 
@@ -27,56 +27,30 @@ class GitRepositoryModelTest(TestCase):
         repo = GitRepository.objects.create(
             name='bare-repo',
             organisation=self.org,
-            source_url='https://github.com/user/repo.git',
-            source_type='github',
             local_path='/git/test-org/bare-repo',
-            is_bare=True,
-            is_mirror=True
+            is_bare=True
         )
 
         self.assertEqual(repo.name, 'bare-repo')
         self.assertTrue(repo.is_bare)
-        self.assertTrue(repo.is_mirror)
-        self.assertEqual(repo.status, 'pending')
         self.assertEqual(str(repo), 'Test Org/bare-repo')
 
-    def test_create_regular_repository(self):
-        """Test creating a regular (non-bare) repository"""
+    def test_create_non_bare_repository(self):
+        """Test creating a non-bare repository"""
         repo = GitRepository.objects.create(
             name='regular-repo',
             organisation=self.org,
-            source_url='https://gitlab.com/user/repo.git',
-            source_type='gitlab',
             local_path='/git/test-org/regular-repo',
-            is_bare=False,
-            is_mirror=False
+            is_bare=False
         )
 
         self.assertFalse(repo.is_bare)
-        self.assertFalse(repo.is_mirror)
-
-    def test_repository_status_transitions(self):
-        """Test valid status transitions"""
-        repo = GitRepository.objects.create(
-            name='status-repo',
-            organisation=self.org,
-            source_url='',
-            local_path='/git/test-org/status-repo'
-        )
-
-        statuses = ['pending', 'initializing', 'mirroring', 'active', 'failed', 'archived']
-        for status in statuses:
-            repo.status = status
-            repo.save()
-            repo.refresh_from_db()
-            self.assertEqual(repo.status, status)
 
     def test_repository_owner_tracking(self):
         """Test tracking repository owner"""
         repo = GitRepository.objects.create(
             name='owned-repo',
             organisation=self.org,
-            source_url='',
             local_path='/git/test-org/owned-repo',
             owner=self.profile
         )
@@ -84,26 +58,11 @@ class GitRepositoryModelTest(TestCase):
         self.assertEqual(repo.owner, self.profile)
         self.assertEqual(repo.owner.user, self.user)
 
-    def test_repository_error_tracking(self):
-        """Test tracking errors in repository"""
-        repo = GitRepository.objects.create(
-            name='error-repo',
-            organisation=self.org,
-            source_url='https://invalid-url.git',
-            local_path='/git/test-org/error-repo',
-            status='failed',
-            error_message='Connection refused'
-        )
-
-        self.assertEqual(repo.status, 'failed')
-        self.assertEqual(repo.error_message, 'Connection refused')
-
     def test_unique_together_constraint(self):
         """Test unique constraint on organisation + name"""
         GitRepository.objects.create(
             name='unique-repo',
             organisation=self.org,
-            source_url='',
             local_path='/git/test-org/unique-repo'
         )
 
@@ -111,180 +70,115 @@ class GitRepositoryModelTest(TestCase):
             GitRepository.objects.create(
                 name='unique-repo',
                 organisation=self.org,
-                source_url='https://other.git',
                 local_path='/git/test-org/other-unique-repo'
             )
 
-    def test_repository_metadata_tracking(self):
-        """Test tracking repository metadata"""
+    def test_git_url_property(self):
+        """Test git_url property returns correct URL"""
         repo = GitRepository.objects.create(
-            name='metadata-repo',
+            name='test-repo',
+            organisation=self.org,
+            local_path='/git/test-org/test-repo'
+        )
+
+        self.assertIn('test-repo.git', repo.git_url)
+        self.assertIn(self.org.name, repo.git_url)
+
+
+class GitMirrorRepositoryModelTest(TestCase):
+    """Test suite for GitMirrorRepository model"""
+
+    def setUp(self):
+        """Set up test fixtures"""
+        self.user = User.objects.create_user(username='testuser', email='test@example.com')
+        self.org = Organisation.objects.create(
+            name='Test Org',
+            slug='test-org',
+            created_by=self.user
+        )
+        self.profile = UserProfile.objects.create(
+            user=self.user,
+            organisation=self.org,
+            role='admin'
+        )
+
+    def test_create_mirror_repository(self):
+        """Test creating a mirror repository"""
+        mirror = GitMirrorRepository.objects.create(
+            name='mirror-repo',
             organisation=self.org,
             source_url='https://github.com/user/repo.git',
-            local_path='/git/test-org/metadata-repo',
-            default_branch='develop',
-            total_commits=42,
-            last_commit_hash='abc123def456'
+            source_type='github',
+            local_path='/git/test-org/mirror-repo',
+            is_bare=True
         )
 
-        self.assertEqual(repo.default_branch, 'develop')
-        self.assertEqual(repo.total_commits, 42)
-        self.assertEqual(repo.last_commit_hash, 'abc123def456')
+        self.assertEqual(mirror.name, 'mirror-repo')
+        self.assertEqual(mirror.source_url, 'https://github.com/user/repo.git')
+        self.assertEqual(mirror.source_type, 'github')
+        self.assertEqual(mirror.status, 'pending')
+        self.assertTrue(mirror.auto_sync)
+        self.assertEqual(str(mirror), 'Test Org/mirror-repo (mirror)')
 
-
-class GitBranchModelTest(TestCase):
-    """Test suite for GitBranch model"""
-
-    def setUp(self):
-        """Set up test fixtures"""
-        self.user = User.objects.create_user(username='testuser', email='test@example.com')
-        self.org = Organisation.objects.create(
-            name='Test Org',
-            slug='test-org',
-            created_by=self.user
-        )
-        self.repo = GitRepository.objects.create(
-            name='test-repo',
+    def test_mirror_status_transitions(self):
+        """Test valid status transitions for mirrors"""
+        mirror = GitMirrorRepository.objects.create(
+            name='status-mirror',
             organisation=self.org,
-            source_url='',
-            local_path='/git/test-org/test-repo'
+            source_url='https://github.com/user/repo.git',
+            local_path='/git/test-org/status-mirror'
         )
 
-    def test_create_branch(self):
-        """Test creating a branch"""
-        branch = GitBranch.objects.create(
-            repository=self.repo,
-            name='main',
-            commit_hash='abc123'
-        )
+        statuses = ['pending', 'initializing', 'active', 'failed', 'paused']
+        for status in statuses:
+            mirror.status = status
+            mirror.save()
+            mirror.refresh_from_db()
+            self.assertEqual(mirror.status, status)
 
-        self.assertEqual(branch.name, 'main')
-        self.assertEqual(branch.commit_hash, 'abc123')
-        self.assertFalse(branch.is_default)
-        self.assertEqual(str(branch), 'test-repo/main')
-
-    def test_set_default_branch(self):
-        """Test marking a branch as default"""
-        main_branch = GitBranch.objects.create(
-            repository=self.repo,
-            name='main',
-            commit_hash='abc123',
-            is_default=True
-        )
-
-        develop_branch = GitBranch.objects.create(
-            repository=self.repo,
-            name='develop',
-            commit_hash='def456',
-            is_default=False
-        )
-
-        self.assertTrue(main_branch.is_default)
-        self.assertFalse(develop_branch.is_default)
-
-    def test_unique_branch_name_per_repo(self):
-        """Test unique constraint on repository + name"""
-        GitBranch.objects.create(
-            repository=self.repo,
-            name='feature',
-            commit_hash='abc123'
-        )
-
-        with self.assertRaises(Exception):
-            GitBranch.objects.create(
-                repository=self.repo,
-                name='feature',
-                commit_hash='def456'
-            )
-
-
-class GitCommitModelTest(TestCase):
-    """Test suite for GitCommit model"""
-
-    def setUp(self):
-        """Set up test fixtures"""
-        self.user = User.objects.create_user(username='testuser', email='test@example.com')
-        self.org = Organisation.objects.create(
-            name='Test Org',
-            slug='test-org',
-            created_by=self.user
-        )
-        self.repo = GitRepository.objects.create(
-            name='test-repo',
+    def test_mirror_error_tracking(self):
+        """Test tracking errors in mirror repositories"""
+        mirror = GitMirrorRepository.objects.create(
+            name='error-mirror',
             organisation=self.org,
-            source_url='',
-            local_path='/git/test-org/test-repo'
+            source_url='https://invalid-url.git',
+            local_path='/git/test-org/error-mirror',
+            status='failed',
+            error_message='Connection refused',
+            consecutive_failures=3
         )
 
-    def test_create_commit(self):
-        """Test creating a commit record"""
-        from django.utils import timezone
-        
-        commit = GitCommit.objects.create(
-            repository=self.repo,
-            commit_hash='abc123def456',
-            author_name='Test Author',
-            author_email='author@example.com',
-            message='Initial commit',
-            committed_at=timezone.now()
+        self.assertEqual(mirror.status, 'failed')
+        self.assertEqual(mirror.error_message, 'Connection refused')
+        self.assertEqual(mirror.consecutive_failures, 3)
+
+    def test_mirror_sync_configuration(self):
+        """Test sync configuration for mirrors"""
+        mirror = GitMirrorRepository.objects.create(
+            name='sync-mirror',
+            organisation=self.org,
+            source_url='https://github.com/user/repo.git',
+            local_path='/git/test-org/sync-mirror',
+            auto_sync=True,
+            sync_interval=7200
         )
 
-        self.assertEqual(commit.commit_hash, 'abc123def456')
-        self.assertEqual(commit.author_name, 'Test Author')
-        self.assertEqual(commit.author_email, 'author@example.com')
-        self.assertIn('abc123de', str(commit))
+        self.assertTrue(mirror.auto_sync)
+        self.assertEqual(mirror.sync_interval, 7200)
 
-    def test_commit_ordering(self):
-        """Test that commits are ordered by commit time"""
-        from django.utils import timezone
-        from datetime import timedelta
-        
-        now = timezone.now()
-        
-        commit1 = GitCommit.objects.create(
-            repository=self.repo,
-            commit_hash='aaa111',
-            author_name='Author A',
-            author_email='a@example.com',
-            message='First',
-            committed_at=now - timedelta(days=2)
-        )
-        
-        commit2 = GitCommit.objects.create(
-            repository=self.repo,
-            commit_hash='bbb222',
-            author_name='Author B',
-            author_email='b@example.com',
-            message='Second',
-            committed_at=now - timedelta(days=1)
-        )
-        
-        commits = list(GitCommit.objects.all())
-        self.assertEqual(commits[0].commit_hash, 'bbb222')
-        self.assertEqual(commits[1].commit_hash, 'aaa111')
-
-    def test_unique_commit_hash_per_repo(self):
-        """Test unique constraint on repository + commit_hash"""
-        from django.utils import timezone
-        
-        GitCommit.objects.create(
-            repository=self.repo,
-            commit_hash='abc123',
-            author_name='Author',
-            author_email='author@example.com',
-            message='Test',
-            committed_at=timezone.now()
+    def test_mirror_inherits_from_gitrepository(self):
+        """Test that GitMirrorRepository inherits from GitRepository"""
+        mirror = GitMirrorRepository.objects.create(
+            name='inherit-test',
+            organisation=self.org,
+            source_url='https://github.com/user/repo.git',
+            local_path='/git/test-org/inherit-test'
         )
 
-        with self.assertRaises(Exception):
-            GitCommit.objects.create(
-                repository=self.repo,
-                commit_hash='abc123',
-                author_name='Other Author',
-                author_email='other@example.com',
-                message='Other',
-                committed_at=timezone.now()
-            )
+        # Should be accessible as GitRepository
+        repo = GitRepository.objects.get(id=mirror.id)
+        self.assertEqual(repo.name, 'inherit-test')
+        self.assertEqual(repo.organisation, self.org)
 
 
 class SyncTaskModelTest(TestCase):
@@ -298,21 +192,21 @@ class SyncTaskModelTest(TestCase):
             slug='test-org',
             created_by=self.user
         )
-        self.repo = GitRepository.objects.create(
-            name='test-repo',
+        self.mirror = GitMirrorRepository.objects.create(
+            name='test-mirror',
             organisation=self.org,
-            source_url='',
-            local_path='/git/test-org/test-repo'
+            source_url='https://github.com/user/repo.git',
+            local_path='/git/test-org/test-mirror'
         )
 
     def test_create_sync_task(self):
         """Test creating a sync task"""
         task = SyncTask.objects.create(
-            repository=self.repo,
+            repository=self.mirror,
             status='pending'
         )
 
-        self.assertEqual(task.repository, self.repo)
+        self.assertEqual(task.repository, self.mirror)
         self.assertEqual(task.status, 'pending')
         self.assertEqual(task.commits_synced, 0)
         self.assertIsNone(task.started_at)
@@ -321,7 +215,7 @@ class SyncTaskModelTest(TestCase):
     def test_sync_task_status_transitions(self):
         """Test valid sync task status transitions"""
         task = SyncTask.objects.create(
-            repository=self.repo,
+            repository=self.mirror,
             status='pending'
         )
 
@@ -336,7 +230,7 @@ class SyncTaskModelTest(TestCase):
         """Test tracking Celery task ID"""
         celery_id = str(uuid.uuid4())
         task = SyncTask.objects.create(
-            repository=self.repo,
+            repository=self.mirror,
             status='running',
             task_id=celery_id
         )
@@ -346,7 +240,7 @@ class SyncTaskModelTest(TestCase):
     def test_sync_task_error_tracking(self):
         """Test tracking sync errors"""
         task = SyncTask.objects.create(
-            repository=self.repo,
+            repository=self.mirror,
             status='failed',
             error_message='Network timeout occurred'
         )
@@ -359,7 +253,7 @@ class SyncTaskModelTest(TestCase):
         from django.utils import timezone
         
         task = SyncTask.objects.create(
-            repository=self.repo,
+            repository=self.mirror,
             status='pending'
         )
 

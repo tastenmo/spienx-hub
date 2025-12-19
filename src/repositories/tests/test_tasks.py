@@ -1,6 +1,6 @@
 from django.test import TestCase
-from repositories.models import GitRepository, SyncTask
-from repositories.tasks import initialize_repository, migrate_repository, sync_repository
+from repositories.models import GitRepository, GitMirrorRepository, SyncTask
+from repositories.tasks import initialize_repository, clone_mirror_repository, sync_mirror_repository
 from accounts.models import Organisation
 from django.contrib.auth.models import User
 from unittest.mock import patch, MagicMock
@@ -18,47 +18,25 @@ class InitializeRepositoryTaskTest(TestCase):
             created_by=self.user
         )
 
-    @patch('git.tasks._get_gitpython_repo')
-    def test_initialize_bare_repository(self, mock_get_repo):
+    @patch('repositories.tasks.git_tasks.GitPythonRepo')
+    @patch('repositories.tasks.git_tasks.os.makedirs')
+    def test_initialize_bare_repository(self, mock_makedirs, mock_git_repo):
         """Test creating a bare git repository"""
-        MockRepo = MagicMock()
         mock_repo_instance = MagicMock()
-        MockRepo.init.return_value = mock_repo_instance
-        mock_get_repo.return_value = MockRepo
+        mock_git_repo.init.return_value = mock_repo_instance
 
         repo = GitRepository.objects.create(
             name='bare-repo',
             organisation=self.org,
-            source_url='',
             local_path='/git/test-org/bare-repo',
             is_bare=True
         )
 
-        with patch('git.tasks.os.makedirs'):
-            result = initialize_repository(repo.id)
+        result = initialize_repository(repo.id)
 
         self.assertTrue(result['success'])
         self.assertEqual(result['repository_id'], repo.id)
-
-    @patch('git.tasks._get_gitpython_repo')
-    def test_initialize_regular_repository(self, mock_get_repo):
-        """Test creating a regular (non-bare) git repository"""
-        MockRepo = MagicMock()
-        MockRepo.init.return_value = MagicMock()
-        mock_get_repo.return_value = MockRepo
-
-        repo = GitRepository.objects.create(
-            name='regular-repo',
-            organisation=self.org,
-            source_url='',
-            local_path='/git/test-org/regular-repo',
-            is_bare=False
-        )
-
-        with patch('git.tasks.os.makedirs'):
-            result = initialize_repository(repo.id)
-
-        self.assertTrue(result['success'])
+        mock_git_repo.init.assert_called_once_with(repo.local_path, bare=True)
 
     def test_initialize_nonexistent_repository(self):
         """Test initializing a repository that doesn't exist"""
@@ -66,8 +44,8 @@ class InitializeRepositoryTaskTest(TestCase):
         self.assertFalse(result['success'])
 
 
-class MigrateRepositoryTaskTest(TestCase):
-    """Test suite for migrate_repository Celery task"""
+class CloneMirrorRepositoryTaskTest(TestCase):
+    """Test suite for clone_mirror_repository Celery task"""
 
     def setUp(self):
         """Set up test fixtures"""
@@ -78,40 +56,36 @@ class MigrateRepositoryTaskTest(TestCase):
             created_by=self.user
         )
 
-    @patch('git.tasks._get_gitpython_repo')
-    def test_migrate_from_source(self, mock_get_repo):
-        """Test migrating a repository from source URL"""
-        MockRepo = MagicMock()
+    @patch('repositories.tasks.git_tasks.GitPythonRepo')
+    @patch('repositories.tasks.git_tasks.os.makedirs')
+    def test_clone_mirror_from_source(self, mock_makedirs, mock_git_repo):
+        """Test cloning a mirror repository from source URL"""
         mock_repo_instance = MagicMock()
-        mock_repo_instance.heads = [MagicMock(name='main')]
-        mock_repo_instance.active_branch.name = 'main'
-        mock_repo_instance.iter_commits.return_value = iter([1, 2, 3])
-        MockRepo.clone_from.return_value = mock_repo_instance
-        mock_get_repo.return_value = MockRepo
+        mock_git_repo.clone_from.return_value = mock_repo_instance
 
-        repo = GitRepository.objects.create(
-            name='github-repo',
+        mirror = GitMirrorRepository.objects.create(
+            name='github-mirror',
             organisation=self.org,
             source_url='https://github.com/user/repo.git',
-            local_path='/git/test-org/github-repo',
-            is_mirror=True,
+            source_type='github',
+            local_path='/git/test-org/github-mirror',
             is_bare=True
         )
 
-        with patch('git.tasks.os.makedirs'):
-            result = migrate_repository(repo.id, force=False)
+        result = clone_mirror_repository(mirror.id)
 
         self.assertTrue(result['success'])
-        self.assertEqual(result['repository_id'], repo.id)
+        self.assertEqual(result['mirror_id'], mirror.id)
+        mock_git_repo.clone_from.assert_called_once()
 
-    def test_migrate_nonexistent_repository(self):
-        """Test migrating a repository that doesn't exist"""
-        result = migrate_repository(99999)
+    def test_clone_nonexistent_mirror(self):
+        """Test cloning a mirror that doesn't exist"""
+        result = clone_mirror_repository(99999)
         self.assertFalse(result['success'])
 
 
-class SyncRepositoryTaskTest(TestCase):
-    """Test suite for sync_repository Celery task"""
+class SyncMirrorRepositoryTaskTest(TestCase):
+    """Test suite for sync_mirror_repository Celery task"""
 
     def setUp(self):
         """Set up test fixtures"""
@@ -122,58 +96,53 @@ class SyncRepositoryTaskTest(TestCase):
             created_by=self.user
         )
 
-    @patch('git.tasks._get_gitpython_repo')
-    @patch('git.tasks.os.path.exists')
-    def test_sync_mirror_repository(self, mock_exists, mock_get_repo):
+    @patch('repositories.tasks.git_tasks.GitPythonRepo')
+    @patch('repositories.tasks.git_tasks.os.path.exists')
+    def test_sync_mirror_repository(self, mock_exists, mock_git_repo):
         """Test syncing a mirror repository"""
-        MockRepo = MagicMock()
         mock_repo_instance = MagicMock()
-        mock_repo_instance.remotes.origin.fetch.return_value = None
-        mock_repo_instance.heads = [MagicMock(name='main')]
-        mock_repo_instance.head.commit.hexsha = 'abc123def456'
-        mock_repo_instance.iter_commits.return_value = iter([1, 2, 3, 4, 5])
-        MockRepo.return_value = mock_repo_instance
-        mock_get_repo.return_value = MockRepo
+        mock_origin = MagicMock()
+        mock_repo_instance.remotes.origin = mock_origin
+        mock_git_repo.return_value = mock_repo_instance
         mock_exists.return_value = True
 
-        repo = GitRepository.objects.create(
-            name='mirror-repo',
+        mirror = GitMirrorRepository.objects.create(
+            name='sync-mirror',
             organisation=self.org,
             source_url='https://github.com/user/repo.git',
-            local_path='/git/test-org/mirror-repo',
-            is_mirror=True,
-            is_bare=True
+            local_path='/git/test-org/sync-mirror',
+            is_bare=True,
+            status='active'
         )
 
-        result = sync_repository(repo.id)
+        result = sync_mirror_repository(mirror.id)
 
         self.assertTrue(result['success'])
-        self.assertEqual(result['total_commits'], 5)
+        mock_origin.fetch.assert_called_once()
 
-        repo.refresh_from_db()
-        self.assertEqual(repo.status, 'active')
+        mirror.refresh_from_db()
+        self.assertEqual(mirror.status, 'active')
 
-    def test_sync_nonexistent_repository(self):
-        """Test syncing a repository that doesn't exist"""
-        result = sync_repository(99999)
+    def test_sync_nonexistent_mirror(self):
+        """Test syncing a mirror that doesn't exist"""
+        result = sync_mirror_repository(99999)
         self.assertFalse(result['success'])
 
-    def test_sync_creates_sync_task_creates_entry(self):
+    def test_sync_creates_sync_task(self):
         """Test that SyncTask is created when calling sync"""
-        repo = GitRepository.objects.create(
-            name='sync-task-repo',
+        mirror = GitMirrorRepository.objects.create(
+            name='sync-task-mirror',
             organisation=self.org,
             source_url='https://github.com/user/repo.git',
-            local_path='/git/test-org/sync-task-repo',
-            is_mirror=True
+            local_path='/git/test-org/sync-task-mirror'
         )
 
         # Create a sync task
         sync_task = SyncTask.objects.create(
-            repository=repo,
+            repository=mirror,
             status='pending'
         )
 
         # Verify task was created
-        self.assertEqual(sync_task.repository, repo)
+        self.assertEqual(sync_task.repository, mirror)
         self.assertEqual(sync_task.status, 'pending')

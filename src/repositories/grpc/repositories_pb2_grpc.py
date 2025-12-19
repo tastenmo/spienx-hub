@@ -4,7 +4,7 @@ import grpc
 import warnings
 
 from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
-from repositories.grpc import repositories_pb2 as repositories_dot_grpc_dot_repositories__pb2
+from . import repositories_pb2 as repositories__pb2
 
 GRPC_GENERATED_VERSION = '1.76.0'
 GRPC_VERSION = grpc.__version__
@@ -19,14 +19,14 @@ except ImportError:
 if _version_not_supported:
     raise RuntimeError(
         f'The grpc package installed is at version {GRPC_VERSION},'
-        + ' but the generated code in repositories/grpc/repositories_pb2_grpc.py depends on'
+        + ' but the generated code in repositories_pb2_grpc.py depends on'
         + f' grpcio>={GRPC_GENERATED_VERSION}.'
         + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
     )
 
 
-class GitRepositoryControllerStub(object):
+class GitMirrorRepositoryAdminControllerStub(object):
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -36,38 +36,38 @@ class GitRepositoryControllerStub(object):
             channel: A grpc.Channel.
         """
         self.Create = channel.unary_unary(
-                '/config.repositories.GitRepositoryController/Create',
-                request_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryRequest.SerializeToString,
-                response_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.FromString,
+                '/config.repositories.GitMirrorRepositoryAdminController/Create',
+                request_serializer=repositories__pb2.GitMirrorRepositoryRequest.SerializeToString,
+                response_deserializer=repositories__pb2.GitMirrorRepositoryResponse.FromString,
                 _registered_method=True)
         self.Destroy = channel.unary_unary(
-                '/config.repositories.GitRepositoryController/Destroy',
-                request_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryDestroyRequest.SerializeToString,
+                '/config.repositories.GitMirrorRepositoryAdminController/Destroy',
+                request_serializer=repositories__pb2.GitMirrorRepositoryDestroyRequest.SerializeToString,
                 response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
                 _registered_method=True)
         self.List = channel.unary_unary(
-                '/config.repositories.GitRepositoryController/List',
-                request_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListRequest.SerializeToString,
-                response_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListResponse.FromString,
+                '/config.repositories.GitMirrorRepositoryAdminController/List',
+                request_serializer=repositories__pb2.GitMirrorRepositoryListRequest.SerializeToString,
+                response_deserializer=repositories__pb2.GitMirrorRepositoryListResponse.FromString,
                 _registered_method=True)
         self.PartialUpdate = channel.unary_unary(
-                '/config.repositories.GitRepositoryController/PartialUpdate',
-                request_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryPartialUpdateRequest.SerializeToString,
-                response_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.FromString,
+                '/config.repositories.GitMirrorRepositoryAdminController/PartialUpdate',
+                request_serializer=repositories__pb2.GitMirrorRepositoryPartialUpdateRequest.SerializeToString,
+                response_deserializer=repositories__pb2.GitMirrorRepositoryResponse.FromString,
                 _registered_method=True)
         self.Retrieve = channel.unary_unary(
-                '/config.repositories.GitRepositoryController/Retrieve',
-                request_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryRetrieveRequest.SerializeToString,
-                response_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.FromString,
+                '/config.repositories.GitMirrorRepositoryAdminController/Retrieve',
+                request_serializer=repositories__pb2.GitMirrorRepositoryRetrieveRequest.SerializeToString,
+                response_deserializer=repositories__pb2.GitMirrorRepositoryResponse.FromString,
                 _registered_method=True)
         self.Update = channel.unary_unary(
-                '/config.repositories.GitRepositoryController/Update',
-                request_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryRequest.SerializeToString,
-                response_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.FromString,
+                '/config.repositories.GitMirrorRepositoryAdminController/Update',
+                request_serializer=repositories__pb2.GitMirrorRepositoryRequest.SerializeToString,
+                response_deserializer=repositories__pb2.GitMirrorRepositoryResponse.FromString,
                 _registered_method=True)
 
 
-class GitRepositoryControllerServicer(object):
+class GitMirrorRepositoryAdminControllerServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def Create(self, request, context):
@@ -107,47 +107,47 @@ class GitRepositoryControllerServicer(object):
         raise NotImplementedError('Method not implemented!')
 
 
-def add_GitRepositoryControllerServicer_to_server(servicer, server):
+def add_GitMirrorRepositoryAdminControllerServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'Create': grpc.unary_unary_rpc_method_handler(
                     servicer.Create,
-                    request_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryRequest.FromString,
-                    response_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.SerializeToString,
+                    request_deserializer=repositories__pb2.GitMirrorRepositoryRequest.FromString,
+                    response_serializer=repositories__pb2.GitMirrorRepositoryResponse.SerializeToString,
             ),
             'Destroy': grpc.unary_unary_rpc_method_handler(
                     servicer.Destroy,
-                    request_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryDestroyRequest.FromString,
+                    request_deserializer=repositories__pb2.GitMirrorRepositoryDestroyRequest.FromString,
                     response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
             ),
             'List': grpc.unary_unary_rpc_method_handler(
                     servicer.List,
-                    request_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListRequest.FromString,
-                    response_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListResponse.SerializeToString,
+                    request_deserializer=repositories__pb2.GitMirrorRepositoryListRequest.FromString,
+                    response_serializer=repositories__pb2.GitMirrorRepositoryListResponse.SerializeToString,
             ),
             'PartialUpdate': grpc.unary_unary_rpc_method_handler(
                     servicer.PartialUpdate,
-                    request_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryPartialUpdateRequest.FromString,
-                    response_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.SerializeToString,
+                    request_deserializer=repositories__pb2.GitMirrorRepositoryPartialUpdateRequest.FromString,
+                    response_serializer=repositories__pb2.GitMirrorRepositoryResponse.SerializeToString,
             ),
             'Retrieve': grpc.unary_unary_rpc_method_handler(
                     servicer.Retrieve,
-                    request_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryRetrieveRequest.FromString,
-                    response_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.SerializeToString,
+                    request_deserializer=repositories__pb2.GitMirrorRepositoryRetrieveRequest.FromString,
+                    response_serializer=repositories__pb2.GitMirrorRepositoryResponse.SerializeToString,
             ),
             'Update': grpc.unary_unary_rpc_method_handler(
                     servicer.Update,
-                    request_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryRequest.FromString,
-                    response_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.SerializeToString,
+                    request_deserializer=repositories__pb2.GitMirrorRepositoryRequest.FromString,
+                    response_serializer=repositories__pb2.GitMirrorRepositoryResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'config.repositories.GitRepositoryController', rpc_method_handlers)
+            'config.repositories.GitMirrorRepositoryAdminController', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('config.repositories.GitRepositoryController', rpc_method_handlers)
+    server.add_registered_method_handlers('config.repositories.GitMirrorRepositoryAdminController', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
-class GitRepositoryController(object):
+class GitMirrorRepositoryAdminController(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
@@ -164,9 +164,9 @@ class GitRepositoryController(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/config.repositories.GitRepositoryController/Create',
-            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryRequest.SerializeToString,
-            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.FromString,
+            '/config.repositories.GitMirrorRepositoryAdminController/Create',
+            repositories__pb2.GitMirrorRepositoryRequest.SerializeToString,
+            repositories__pb2.GitMirrorRepositoryResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -191,8 +191,8 @@ class GitRepositoryController(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/config.repositories.GitRepositoryController/Destroy',
-            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryDestroyRequest.SerializeToString,
+            '/config.repositories.GitMirrorRepositoryAdminController/Destroy',
+            repositories__pb2.GitMirrorRepositoryDestroyRequest.SerializeToString,
             google_dot_protobuf_dot_empty__pb2.Empty.FromString,
             options,
             channel_credentials,
@@ -218,9 +218,9 @@ class GitRepositoryController(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/config.repositories.GitRepositoryController/List',
-            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListRequest.SerializeToString,
-            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListResponse.FromString,
+            '/config.repositories.GitMirrorRepositoryAdminController/List',
+            repositories__pb2.GitMirrorRepositoryListRequest.SerializeToString,
+            repositories__pb2.GitMirrorRepositoryListResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -245,9 +245,9 @@ class GitRepositoryController(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/config.repositories.GitRepositoryController/PartialUpdate',
-            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryPartialUpdateRequest.SerializeToString,
-            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.FromString,
+            '/config.repositories.GitMirrorRepositoryAdminController/PartialUpdate',
+            repositories__pb2.GitMirrorRepositoryPartialUpdateRequest.SerializeToString,
+            repositories__pb2.GitMirrorRepositoryResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -272,9 +272,9 @@ class GitRepositoryController(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/config.repositories.GitRepositoryController/Retrieve',
-            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryRetrieveRequest.SerializeToString,
-            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.FromString,
+            '/config.repositories.GitMirrorRepositoryAdminController/Retrieve',
+            repositories__pb2.GitMirrorRepositoryRetrieveRequest.SerializeToString,
+            repositories__pb2.GitMirrorRepositoryResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -299,9 +299,483 @@ class GitRepositoryController(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/config.repositories.GitRepositoryController/Update',
-            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryRequest.SerializeToString,
-            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryResponse.FromString,
+            '/config.repositories.GitMirrorRepositoryAdminController/Update',
+            repositories__pb2.GitMirrorRepositoryRequest.SerializeToString,
+            repositories__pb2.GitMirrorRepositoryResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+
+class GitMirrorRepositoryMirroringControllerStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.CreateMirror = channel.unary_unary(
+                '/config.repositories.GitMirrorRepositoryMirroringController/CreateMirror',
+                request_serializer=repositories__pb2.GitMirrorRepositoryMirroringCreateMirrorRequest.SerializeToString,
+                response_deserializer=repositories__pb2.GitMirrorRepositoryMirroringCreateMirrorResponse.FromString,
+                _registered_method=True)
+
+
+class GitMirrorRepositoryMirroringControllerServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def CreateMirror(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_GitMirrorRepositoryMirroringControllerServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'CreateMirror': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateMirror,
+                    request_deserializer=repositories__pb2.GitMirrorRepositoryMirroringCreateMirrorRequest.FromString,
+                    response_serializer=repositories__pb2.GitMirrorRepositoryMirroringCreateMirrorResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'config.repositories.GitMirrorRepositoryMirroringController', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('config.repositories.GitMirrorRepositoryMirroringController', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class GitMirrorRepositoryMirroringController(object):
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def CreateMirror(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.GitMirrorRepositoryMirroringController/CreateMirror',
+            repositories__pb2.GitMirrorRepositoryMirroringCreateMirrorRequest.SerializeToString,
+            repositories__pb2.GitMirrorRepositoryMirroringCreateMirrorResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+
+class GitMirrorRepositoryReadControllerStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.List = channel.unary_unary(
+                '/config.repositories.GitMirrorRepositoryReadController/List',
+                request_serializer=repositories__pb2.GitMirrorRepositoryListRequest.SerializeToString,
+                response_deserializer=repositories__pb2.GitMirrorRepositoryListResponse.FromString,
+                _registered_method=True)
+        self.Retrieve = channel.unary_unary(
+                '/config.repositories.GitMirrorRepositoryReadController/Retrieve',
+                request_serializer=repositories__pb2.GitMirrorRepositoryRetrieveRequest.SerializeToString,
+                response_deserializer=repositories__pb2.GitMirrorRepositoryResponse.FromString,
+                _registered_method=True)
+
+
+class GitMirrorRepositoryReadControllerServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def List(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Retrieve(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_GitMirrorRepositoryReadControllerServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'List': grpc.unary_unary_rpc_method_handler(
+                    servicer.List,
+                    request_deserializer=repositories__pb2.GitMirrorRepositoryListRequest.FromString,
+                    response_serializer=repositories__pb2.GitMirrorRepositoryListResponse.SerializeToString,
+            ),
+            'Retrieve': grpc.unary_unary_rpc_method_handler(
+                    servicer.Retrieve,
+                    request_deserializer=repositories__pb2.GitMirrorRepositoryRetrieveRequest.FromString,
+                    response_serializer=repositories__pb2.GitMirrorRepositoryResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'config.repositories.GitMirrorRepositoryReadController', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('config.repositories.GitMirrorRepositoryReadController', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class GitMirrorRepositoryReadController(object):
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def List(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.GitMirrorRepositoryReadController/List',
+            repositories__pb2.GitMirrorRepositoryListRequest.SerializeToString,
+            repositories__pb2.GitMirrorRepositoryListResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Retrieve(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.GitMirrorRepositoryReadController/Retrieve',
+            repositories__pb2.GitMirrorRepositoryRetrieveRequest.SerializeToString,
+            repositories__pb2.GitMirrorRepositoryResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+
+class GitRepositoryAdminControllerStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.Create = channel.unary_unary(
+                '/config.repositories.GitRepositoryAdminController/Create',
+                request_serializer=repositories__pb2.GitRepositoryRequest.SerializeToString,
+                response_deserializer=repositories__pb2.GitRepositoryResponse.FromString,
+                _registered_method=True)
+        self.Destroy = channel.unary_unary(
+                '/config.repositories.GitRepositoryAdminController/Destroy',
+                request_serializer=repositories__pb2.GitRepositoryDestroyRequest.SerializeToString,
+                response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                _registered_method=True)
+        self.List = channel.unary_unary(
+                '/config.repositories.GitRepositoryAdminController/List',
+                request_serializer=repositories__pb2.GitRepositoryListRequest.SerializeToString,
+                response_deserializer=repositories__pb2.GitRepositoryListResponse.FromString,
+                _registered_method=True)
+        self.PartialUpdate = channel.unary_unary(
+                '/config.repositories.GitRepositoryAdminController/PartialUpdate',
+                request_serializer=repositories__pb2.GitRepositoryPartialUpdateRequest.SerializeToString,
+                response_deserializer=repositories__pb2.GitRepositoryResponse.FromString,
+                _registered_method=True)
+        self.Retrieve = channel.unary_unary(
+                '/config.repositories.GitRepositoryAdminController/Retrieve',
+                request_serializer=repositories__pb2.GitRepositoryRetrieveRequest.SerializeToString,
+                response_deserializer=repositories__pb2.GitRepositoryResponse.FromString,
+                _registered_method=True)
+        self.Update = channel.unary_unary(
+                '/config.repositories.GitRepositoryAdminController/Update',
+                request_serializer=repositories__pb2.GitRepositoryRequest.SerializeToString,
+                response_deserializer=repositories__pb2.GitRepositoryResponse.FromString,
+                _registered_method=True)
+
+
+class GitRepositoryAdminControllerServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def Create(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Destroy(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def List(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def PartialUpdate(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Retrieve(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Update(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_GitRepositoryAdminControllerServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'Create': grpc.unary_unary_rpc_method_handler(
+                    servicer.Create,
+                    request_deserializer=repositories__pb2.GitRepositoryRequest.FromString,
+                    response_serializer=repositories__pb2.GitRepositoryResponse.SerializeToString,
+            ),
+            'Destroy': grpc.unary_unary_rpc_method_handler(
+                    servicer.Destroy,
+                    request_deserializer=repositories__pb2.GitRepositoryDestroyRequest.FromString,
+                    response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            ),
+            'List': grpc.unary_unary_rpc_method_handler(
+                    servicer.List,
+                    request_deserializer=repositories__pb2.GitRepositoryListRequest.FromString,
+                    response_serializer=repositories__pb2.GitRepositoryListResponse.SerializeToString,
+            ),
+            'PartialUpdate': grpc.unary_unary_rpc_method_handler(
+                    servicer.PartialUpdate,
+                    request_deserializer=repositories__pb2.GitRepositoryPartialUpdateRequest.FromString,
+                    response_serializer=repositories__pb2.GitRepositoryResponse.SerializeToString,
+            ),
+            'Retrieve': grpc.unary_unary_rpc_method_handler(
+                    servicer.Retrieve,
+                    request_deserializer=repositories__pb2.GitRepositoryRetrieveRequest.FromString,
+                    response_serializer=repositories__pb2.GitRepositoryResponse.SerializeToString,
+            ),
+            'Update': grpc.unary_unary_rpc_method_handler(
+                    servicer.Update,
+                    request_deserializer=repositories__pb2.GitRepositoryRequest.FromString,
+                    response_serializer=repositories__pb2.GitRepositoryResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'config.repositories.GitRepositoryAdminController', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('config.repositories.GitRepositoryAdminController', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class GitRepositoryAdminController(object):
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def Create(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.GitRepositoryAdminController/Create',
+            repositories__pb2.GitRepositoryRequest.SerializeToString,
+            repositories__pb2.GitRepositoryResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Destroy(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.GitRepositoryAdminController/Destroy',
+            repositories__pb2.GitRepositoryDestroyRequest.SerializeToString,
+            google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def List(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.GitRepositoryAdminController/List',
+            repositories__pb2.GitRepositoryListRequest.SerializeToString,
+            repositories__pb2.GitRepositoryListResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def PartialUpdate(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.GitRepositoryAdminController/PartialUpdate',
+            repositories__pb2.GitRepositoryPartialUpdateRequest.SerializeToString,
+            repositories__pb2.GitRepositoryResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Retrieve(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.GitRepositoryAdminController/Retrieve',
+            repositories__pb2.GitRepositoryRetrieveRequest.SerializeToString,
+            repositories__pb2.GitRepositoryResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Update(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.GitRepositoryAdminController/Update',
+            repositories__pb2.GitRepositoryRequest.SerializeToString,
+            repositories__pb2.GitRepositoryResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -322,17 +796,17 @@ class GitRepositoryCreationControllerStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.Init = channel.unary_unary(
-                '/config.repositories.GitRepositoryCreationController/Init',
-                request_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryCreationInitRequest.SerializeToString,
-                response_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryCreationInitResponse.FromString,
+        self.Create = channel.unary_unary(
+                '/config.repositories.GitRepositoryCreationController/Create',
+                request_serializer=repositories__pb2.GitRepositoryCreationCreateRequest.SerializeToString,
+                response_deserializer=repositories__pb2.GitRepositoryCreationCreateResponse.FromString,
                 _registered_method=True)
 
 
 class GitRepositoryCreationControllerServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def Init(self, request, context):
+    def Create(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -341,10 +815,10 @@ class GitRepositoryCreationControllerServicer(object):
 
 def add_GitRepositoryCreationControllerServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'Init': grpc.unary_unary_rpc_method_handler(
-                    servicer.Init,
-                    request_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryCreationInitRequest.FromString,
-                    response_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryCreationInitResponse.SerializeToString,
+            'Create': grpc.unary_unary_rpc_method_handler(
+                    servicer.Create,
+                    request_deserializer=repositories__pb2.GitRepositoryCreationCreateRequest.FromString,
+                    response_serializer=repositories__pb2.GitRepositoryCreationCreateResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -358,7 +832,7 @@ class GitRepositoryCreationController(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def Init(request,
+    def Create(request,
             target,
             options=(),
             channel_credentials=None,
@@ -371,9 +845,785 @@ class GitRepositoryCreationController(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/config.repositories.GitRepositoryCreationController/Init',
-            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryCreationInitRequest.SerializeToString,
-            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryCreationInitResponse.FromString,
+            '/config.repositories.GitRepositoryCreationController/Create',
+            repositories__pb2.GitRepositoryCreationCreateRequest.SerializeToString,
+            repositories__pb2.GitRepositoryCreationCreateResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+
+class GitRepositoryMigrationControllerStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.Migrate = channel.unary_unary(
+                '/config.repositories.GitRepositoryMigrationController/Migrate',
+                request_serializer=repositories__pb2.GitRepositoryMigrationMigrateRequest.SerializeToString,
+                response_deserializer=repositories__pb2.GitRepositoryMigrationMigrateResponse.FromString,
+                _registered_method=True)
+
+
+class GitRepositoryMigrationControllerServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def Migrate(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_GitRepositoryMigrationControllerServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'Migrate': grpc.unary_unary_rpc_method_handler(
+                    servicer.Migrate,
+                    request_deserializer=repositories__pb2.GitRepositoryMigrationMigrateRequest.FromString,
+                    response_serializer=repositories__pb2.GitRepositoryMigrationMigrateResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'config.repositories.GitRepositoryMigrationController', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('config.repositories.GitRepositoryMigrationController', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class GitRepositoryMigrationController(object):
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def Migrate(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.GitRepositoryMigrationController/Migrate',
+            repositories__pb2.GitRepositoryMigrationMigrateRequest.SerializeToString,
+            repositories__pb2.GitRepositoryMigrationMigrateResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+
+class GitRepositoryReadControllerStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.List = channel.unary_unary(
+                '/config.repositories.GitRepositoryReadController/List',
+                request_serializer=repositories__pb2.GitRepositoryListRequest.SerializeToString,
+                response_deserializer=repositories__pb2.GitRepositoryListResponse.FromString,
+                _registered_method=True)
+        self.Retrieve = channel.unary_unary(
+                '/config.repositories.GitRepositoryReadController/Retrieve',
+                request_serializer=repositories__pb2.GitRepositoryRetrieveRequest.SerializeToString,
+                response_deserializer=repositories__pb2.GitRepositoryResponse.FromString,
+                _registered_method=True)
+
+
+class GitRepositoryReadControllerServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def List(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Retrieve(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_GitRepositoryReadControllerServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'List': grpc.unary_unary_rpc_method_handler(
+                    servicer.List,
+                    request_deserializer=repositories__pb2.GitRepositoryListRequest.FromString,
+                    response_serializer=repositories__pb2.GitRepositoryListResponse.SerializeToString,
+            ),
+            'Retrieve': grpc.unary_unary_rpc_method_handler(
+                    servicer.Retrieve,
+                    request_deserializer=repositories__pb2.GitRepositoryRetrieveRequest.FromString,
+                    response_serializer=repositories__pb2.GitRepositoryResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'config.repositories.GitRepositoryReadController', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('config.repositories.GitRepositoryReadController', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class GitRepositoryReadController(object):
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def List(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.GitRepositoryReadController/List',
+            repositories__pb2.GitRepositoryListRequest.SerializeToString,
+            repositories__pb2.GitRepositoryListResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Retrieve(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.GitRepositoryReadController/Retrieve',
+            repositories__pb2.GitRepositoryRetrieveRequest.SerializeToString,
+            repositories__pb2.GitRepositoryResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+
+class GitRepositorySyncControllerStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.SyncNow = channel.unary_unary(
+                '/config.repositories.GitRepositorySyncController/SyncNow',
+                request_serializer=repositories__pb2.GitRepositorySyncSyncNowRequest.SerializeToString,
+                response_deserializer=repositories__pb2.GitRepositorySyncSyncNowResponse.FromString,
+                _registered_method=True)
+
+
+class GitRepositorySyncControllerServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def SyncNow(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_GitRepositorySyncControllerServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'SyncNow': grpc.unary_unary_rpc_method_handler(
+                    servicer.SyncNow,
+                    request_deserializer=repositories__pb2.GitRepositorySyncSyncNowRequest.FromString,
+                    response_serializer=repositories__pb2.GitRepositorySyncSyncNowResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'config.repositories.GitRepositorySyncController', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('config.repositories.GitRepositorySyncController', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class GitRepositorySyncController(object):
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def SyncNow(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.GitRepositorySyncController/SyncNow',
+            repositories__pb2.GitRepositorySyncSyncNowRequest.SerializeToString,
+            repositories__pb2.GitRepositorySyncSyncNowResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+
+class SyncTaskAdminControllerStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.Create = channel.unary_unary(
+                '/config.repositories.SyncTaskAdminController/Create',
+                request_serializer=repositories__pb2.SyncTaskRequest.SerializeToString,
+                response_deserializer=repositories__pb2.SyncTaskResponse.FromString,
+                _registered_method=True)
+        self.Destroy = channel.unary_unary(
+                '/config.repositories.SyncTaskAdminController/Destroy',
+                request_serializer=repositories__pb2.SyncTaskDestroyRequest.SerializeToString,
+                response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                _registered_method=True)
+        self.List = channel.unary_unary(
+                '/config.repositories.SyncTaskAdminController/List',
+                request_serializer=repositories__pb2.SyncTaskListRequest.SerializeToString,
+                response_deserializer=repositories__pb2.SyncTaskListResponse.FromString,
+                _registered_method=True)
+        self.PartialUpdate = channel.unary_unary(
+                '/config.repositories.SyncTaskAdminController/PartialUpdate',
+                request_serializer=repositories__pb2.SyncTaskPartialUpdateRequest.SerializeToString,
+                response_deserializer=repositories__pb2.SyncTaskResponse.FromString,
+                _registered_method=True)
+        self.Retrieve = channel.unary_unary(
+                '/config.repositories.SyncTaskAdminController/Retrieve',
+                request_serializer=repositories__pb2.SyncTaskRetrieveRequest.SerializeToString,
+                response_deserializer=repositories__pb2.SyncTaskResponse.FromString,
+                _registered_method=True)
+        self.Update = channel.unary_unary(
+                '/config.repositories.SyncTaskAdminController/Update',
+                request_serializer=repositories__pb2.SyncTaskRequest.SerializeToString,
+                response_deserializer=repositories__pb2.SyncTaskResponse.FromString,
+                _registered_method=True)
+
+
+class SyncTaskAdminControllerServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def Create(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Destroy(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def List(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def PartialUpdate(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Retrieve(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Update(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_SyncTaskAdminControllerServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'Create': grpc.unary_unary_rpc_method_handler(
+                    servicer.Create,
+                    request_deserializer=repositories__pb2.SyncTaskRequest.FromString,
+                    response_serializer=repositories__pb2.SyncTaskResponse.SerializeToString,
+            ),
+            'Destroy': grpc.unary_unary_rpc_method_handler(
+                    servicer.Destroy,
+                    request_deserializer=repositories__pb2.SyncTaskDestroyRequest.FromString,
+                    response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            ),
+            'List': grpc.unary_unary_rpc_method_handler(
+                    servicer.List,
+                    request_deserializer=repositories__pb2.SyncTaskListRequest.FromString,
+                    response_serializer=repositories__pb2.SyncTaskListResponse.SerializeToString,
+            ),
+            'PartialUpdate': grpc.unary_unary_rpc_method_handler(
+                    servicer.PartialUpdate,
+                    request_deserializer=repositories__pb2.SyncTaskPartialUpdateRequest.FromString,
+                    response_serializer=repositories__pb2.SyncTaskResponse.SerializeToString,
+            ),
+            'Retrieve': grpc.unary_unary_rpc_method_handler(
+                    servicer.Retrieve,
+                    request_deserializer=repositories__pb2.SyncTaskRetrieveRequest.FromString,
+                    response_serializer=repositories__pb2.SyncTaskResponse.SerializeToString,
+            ),
+            'Update': grpc.unary_unary_rpc_method_handler(
+                    servicer.Update,
+                    request_deserializer=repositories__pb2.SyncTaskRequest.FromString,
+                    response_serializer=repositories__pb2.SyncTaskResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'config.repositories.SyncTaskAdminController', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('config.repositories.SyncTaskAdminController', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class SyncTaskAdminController(object):
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def Create(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.SyncTaskAdminController/Create',
+            repositories__pb2.SyncTaskRequest.SerializeToString,
+            repositories__pb2.SyncTaskResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Destroy(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.SyncTaskAdminController/Destroy',
+            repositories__pb2.SyncTaskDestroyRequest.SerializeToString,
+            google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def List(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.SyncTaskAdminController/List',
+            repositories__pb2.SyncTaskListRequest.SerializeToString,
+            repositories__pb2.SyncTaskListResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def PartialUpdate(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.SyncTaskAdminController/PartialUpdate',
+            repositories__pb2.SyncTaskPartialUpdateRequest.SerializeToString,
+            repositories__pb2.SyncTaskResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Retrieve(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.SyncTaskAdminController/Retrieve',
+            repositories__pb2.SyncTaskRetrieveRequest.SerializeToString,
+            repositories__pb2.SyncTaskResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Update(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.SyncTaskAdminController/Update',
+            repositories__pb2.SyncTaskRequest.SerializeToString,
+            repositories__pb2.SyncTaskResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+
+class SyncTaskReadControllerStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.List = channel.unary_unary(
+                '/config.repositories.SyncTaskReadController/List',
+                request_serializer=repositories__pb2.SyncTaskListRequest.SerializeToString,
+                response_deserializer=repositories__pb2.SyncTaskListResponse.FromString,
+                _registered_method=True)
+        self.Retrieve = channel.unary_unary(
+                '/config.repositories.SyncTaskReadController/Retrieve',
+                request_serializer=repositories__pb2.SyncTaskRetrieveRequest.SerializeToString,
+                response_deserializer=repositories__pb2.SyncTaskResponse.FromString,
+                _registered_method=True)
+
+
+class SyncTaskReadControllerServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def List(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Retrieve(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_SyncTaskReadControllerServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'List': grpc.unary_unary_rpc_method_handler(
+                    servicer.List,
+                    request_deserializer=repositories__pb2.SyncTaskListRequest.FromString,
+                    response_serializer=repositories__pb2.SyncTaskListResponse.SerializeToString,
+            ),
+            'Retrieve': grpc.unary_unary_rpc_method_handler(
+                    servicer.Retrieve,
+                    request_deserializer=repositories__pb2.SyncTaskRetrieveRequest.FromString,
+                    response_serializer=repositories__pb2.SyncTaskResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'config.repositories.SyncTaskReadController', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('config.repositories.SyncTaskReadController', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class SyncTaskReadController(object):
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def List(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.SyncTaskReadController/List',
+            repositories__pb2.SyncTaskListRequest.SerializeToString,
+            repositories__pb2.SyncTaskListResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Retrieve(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.SyncTaskReadController/Retrieve',
+            repositories__pb2.SyncTaskRetrieveRequest.SerializeToString,
+            repositories__pb2.SyncTaskResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+
+class TaskStatusControllerStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.GetRepositoryTasks = channel.unary_unary(
+                '/config.repositories.TaskStatusController/GetRepositoryTasks',
+                request_serializer=repositories__pb2.TaskStatusGetRepositoryTasksRequest.SerializeToString,
+                response_deserializer=repositories__pb2.TaskStatusGetRepositoryTasksResponse.FromString,
+                _registered_method=True)
+        self.GetStatus = channel.unary_unary(
+                '/config.repositories.TaskStatusController/GetStatus',
+                request_serializer=repositories__pb2.TaskStatusGetStatusRequest.SerializeToString,
+                response_deserializer=repositories__pb2.TaskStatusGetStatusResponse.FromString,
+                _registered_method=True)
+
+
+class TaskStatusControllerServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def GetRepositoryTasks(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetStatus(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_TaskStatusControllerServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'GetRepositoryTasks': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetRepositoryTasks,
+                    request_deserializer=repositories__pb2.TaskStatusGetRepositoryTasksRequest.FromString,
+                    response_serializer=repositories__pb2.TaskStatusGetRepositoryTasksResponse.SerializeToString,
+            ),
+            'GetStatus': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetStatus,
+                    request_deserializer=repositories__pb2.TaskStatusGetStatusRequest.FromString,
+                    response_serializer=repositories__pb2.TaskStatusGetStatusResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'config.repositories.TaskStatusController', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('config.repositories.TaskStatusController', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class TaskStatusController(object):
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def GetRepositoryTasks(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.TaskStatusController/GetRepositoryTasks',
+            repositories__pb2.TaskStatusGetRepositoryTasksRequest.SerializeToString,
+            repositories__pb2.TaskStatusGetRepositoryTasksResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetStatus(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.TaskStatusController/GetStatus',
+            repositories__pb2.TaskStatusGetStatusRequest.SerializeToString,
+            repositories__pb2.TaskStatusGetStatusResponse.FromString,
             options,
             channel_credentials,
             insecure,

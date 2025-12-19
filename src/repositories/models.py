@@ -1,18 +1,10 @@
 from django.db import models
+from django.conf import settings
 from accounts.models import Organisation, UserProfile
 
 
 class GitRepository(models.Model):
-    """Model representing a Git repository"""
-
-    STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('initializing', 'Initializing'),
-        ('mirroring', 'Mirroring'),
-        ('active', 'Active'),
-        ('failed', 'Failed'),
-        ('archived', 'Archived'),
-    ]
+    """Base model representing a Git repository (bare repository)"""
 
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -22,40 +14,16 @@ class GitRepository(models.Model):
         related_name='repositories'
     )
     
-    # Source repository details
-    source_url = models.URLField(help_text="Original repository URL (e.g., GitHub, GitLab)")
-    source_type = models.CharField(
-        max_length=50,
-        choices=[
-            ('github', 'GitHub'),
-            ('gitlab', 'GitLab'),
-            ('gitea', 'Gitea'),
-            ('custom', 'Custom Git Server'),
-        ],
-        default='github'
-    )
-    
     # Local storage
     local_path = models.CharField(
         max_length=512,
         unique=True,
-        help_text="Local file system path"
+        help_text="Local file system path where the repository is stored"
     )
-    
-    # Status and metadata
-    status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default='pending'
+    is_bare = models.BooleanField(
+        default=True,
+        help_text="Whether this is a bare repository (no working directory)"
     )
-    is_mirror = models.BooleanField(default=True)
-    is_bare = models.BooleanField(default=True)
-    
-    # Git information
-    default_branch = models.CharField(max_length=255, default='main', blank=True)
-    last_synced_at = models.DateTimeField(null=True, blank=True)
-    last_commit_hash = models.CharField(max_length=40, blank=True)
-    total_commits = models.IntegerField(default=0)
     
     # Access control
     is_public = models.BooleanField(default=True)
@@ -69,70 +37,90 @@ class GitRepository(models.Model):
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    error_message = models.TextField(blank=True, help_text="Error details if status is failed")
 
     class Meta:
         ordering = ['-created_at']
         unique_together = [['organisation', 'name']]
         indexes = [
-            models.Index(fields=['organisation', 'status']),
-            models.Index(fields=['source_url']),
-            models.Index(fields=['status']),
+            models.Index(fields=['organisation', 'name']),
         ]
 
     def __str__(self):
         return f"{self.organisation.name}/{self.name}"
+    
+    @property
+    def git_url(self):
+        """Returns the Git clone URL for this repository"""
+        domain = settings.GIT_DOMAIN
+        return f"https://{domain}/git/{self.organisation.name}/{self.name}.git"
 
 
-class GitBranch(models.Model):
-    """Model representing a branch in a repository"""
+class GitMirrorRepository(GitRepository):
+    """Model representing a mirrored Git repository from external sources"""
 
-    repository = models.ForeignKey(
-        GitRepository,
-        on_delete=models.CASCADE,
-        related_name='branches'
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('initializing', 'Initializing'),
+        ('active', 'Active'),
+        ('failed', 'Failed'),
+        ('paused', 'Paused'),
+    ]
+
+    SOURCE_TYPE_CHOICES = [
+        ('github', 'GitHub'),
+        ('gitlab', 'GitLab'),
+        ('gitea', 'Gitea'),
+        ('bitbucket', 'Bitbucket'),
+        ('custom', 'Custom Git Server'),
+    ]
+
+    # Source repository details
+    source_url = models.URLField(
+        help_text="Original repository URL (e.g., GitHub, GitLab)"
     )
-    name = models.CharField(max_length=255)
-    commit_hash = models.CharField(max_length=40)
-    is_default = models.BooleanField(default=False)
-    last_updated = models.DateTimeField(auto_now=True)
+    source_type = models.CharField(
+        max_length=50,
+        choices=SOURCE_TYPE_CHOICES,
+        default='github'
+    )
+    
+    # Mirror status
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+    
+    # Sync information
+    last_synced_at = models.DateTimeField(null=True, blank=True)
+    sync_interval = models.IntegerField(
+        default=3600,
+        help_text="Sync interval in seconds (default: 1 hour)"
+    )
+    auto_sync = models.BooleanField(
+        default=True,
+        help_text="Automatically sync this mirror on schedule"
+    )
+    
+    # Error tracking
+    error_message = models.TextField(
+        blank=True,
+        help_text="Error details if status is failed"
+    )
+    consecutive_failures = models.IntegerField(
+        default=0,
+        help_text="Number of consecutive sync failures"
+    )
 
     class Meta:
-        ordering = ['name']
-        unique_together = [['repository', 'name']]
         indexes = [
-            models.Index(fields=['repository', 'is_default']),
+            models.Index(fields=['status']),
+            models.Index(fields=['source_url']),
+            models.Index(fields=['auto_sync', 'last_synced_at']),
         ]
 
     def __str__(self):
-        return f"{self.repository.name}/{self.name}"
-
-
-class GitCommit(models.Model):
-    """Model representing commits in a repository"""
-
-    repository = models.ForeignKey(
-        GitRepository,
-        on_delete=models.CASCADE,
-        related_name='commits'
-    )
-    commit_hash = models.CharField(max_length=40, db_index=True)
-    author_name = models.CharField(max_length=255)
-    author_email = models.EmailField()
-    message = models.TextField()
-    committed_at = models.DateTimeField()
-    synced_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['-committed_at']
-        unique_together = [['repository', 'commit_hash']]
-        indexes = [
-            models.Index(fields=['repository', 'committed_at']),
-            models.Index(fields=['author_email']),
-        ]
-
-    def __str__(self):
-        return f"{self.repository.name}/{self.commit_hash[:8]}"
+        return f"{self.organisation.name}/{self.name} (mirror)"
 
 
 class SyncTask(models.Model):
