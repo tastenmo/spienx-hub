@@ -3,4 +3,10 @@
 # Usage: ./manage.sh <command> [args]
 
 export PYTHONPATH="${PWD}/src:${PYTHONPATH}"
-poetry run python src/manage.py "$@"
+
+# Ensure proto pb2 files are generated under apps folder (src)
+if [ "$1" = "generateproto" ]; then
+	(cd src && poetry run python manage.py "$@")
+else
+	poetry run python src/manage.py "$@"
+fi

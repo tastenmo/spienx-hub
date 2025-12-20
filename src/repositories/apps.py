@@ -7,4 +7,8 @@ class GitConfig(AppConfig):
     
     def ready(self):
         """Import grpc services when app is ready"""
-        from . import services  # noqa
+        try:
+            from . import services  # noqa
+        except ImportError:
+            # Proto files not generated yet
+            pass

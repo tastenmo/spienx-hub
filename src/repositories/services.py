@@ -8,6 +8,7 @@ from git import Repo as git_repo
 from accounts.models import Organisation
 from celery import current_app
 import grpc
+from rest_framework import serializers
 
 
 # ============================================================================
@@ -16,6 +17,11 @@ import grpc
 
 class GitRepositorySerializer(proto_serializers.ModelProtoSerializer):
     """Serializer for GitRepository model"""
+    git_url = serializers.SerializerMethodField()
+
+    def get_git_url(self, obj) -> str | None:
+        return getattr(obj, 'git_url', None)
+
     class Meta:
         model = GitRepository
         fields = '__all__'
@@ -25,6 +31,7 @@ class GitRepositorySerializer(proto_serializers.ModelProtoSerializer):
             'local_path': {'read_only': True},
             'created_at': {'read_only': True},
             'updated_at': {'read_only': True},
+            'git_url': {'read_only': True},
         }
 
 
@@ -219,7 +226,7 @@ class GitMirrorRepositoryMirroringService(generics.GenericService):
         from repositories.tasks import clone_mirror_repository
         task = clone_mirror_repository.delay(mirror.id)
         
-        return repositories_pb2.GitRepositoryCreationInitResponse(
+        return repositories_pb2.GitMirrorRepositoryMirroringCreateMirrorResponse(
             id=mirror.id,
             status=mirror.status,
             local_path=mirror.local_path,
@@ -269,6 +276,69 @@ class GitRepositoryMigrationService(generics.GenericService):
             return repositories_pb2.GitRepositoryMigrationResponse(
                 success=False,
                 new_local_path="",
+                message=f"Migration failed: {str(e)}",
+            )
+
+    @grpc_action(
+        request=[
+            {"name": "name", "type": "string"},
+            {"name": "organisation_id", "type": "int64"},
+            {"name": "source_url", "type": "string"},
+            {"name": "description", "type": "string"},
+        ],
+        response=[
+            {"name": "success", "type": "bool"},
+            {"name": "local_path", "type": "string"},
+            {"name": "message", "type": "string"},
+        ],
+    )
+    async def MigrateFromExternal(self, request, context):
+        """Migrate (clone --bare) a repository from an external git server"""
+        try:
+            organisation = await Organisation.objects.aget(id=request.organisation_id)
+            
+            base_dir = getattr(settings, 'GIT_REPOS_DIR', os.path.join(settings.BASE_DIR, 'repos'))
+            safe_name = "".join([c for c in request.name if c.isalnum() or c in ('-', '_')])
+            local_path = os.path.join(base_dir, str(organisation.id), safe_name)
+            
+            # Create directories
+            os.makedirs(os.path.dirname(local_path), exist_ok=True)
+            
+            # Clone as bare repository
+            import subprocess
+            result = subprocess.run(
+                ['git', 'clone', '--bare', request.source_url, local_path],
+                capture_output=True,
+                text=True,
+                timeout=300
+            )
+            
+            if result.returncode != 0:
+                return repositories_pb2.GitRepositoryMigrationMigrateFromExternalResponse(
+                    success=False,
+                    local_path="",
+                    message=f"Clone failed: {result.stderr}",
+                )
+            
+            # Create repository record
+            repository = await GitRepository.objects.acreate(
+                name=request.name,
+                description=request.description,
+                organisation=organisation,
+                local_path=local_path,
+                is_bare=True,
+                is_public=True,
+            )
+            
+            return repositories_pb2.GitRepositoryMigrationMigrateFromExternalResponse(
+                success=True,
+                local_path=local_path,
+                message=f"Repository cloned from external source",
+            )
+        except Exception as e:
+            return repositories_pb2.GitRepositoryMigrationMigrateFromExternalResponse(
+                success=False,
+                local_path="",
                 message=f"Migration failed: {str(e)}",
             )
 

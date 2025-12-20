@@ -37,6 +37,7 @@ service GitRepositoryCreationController {
 
 service GitRepositoryMigrationController {
     rpc Migrate(GitRepositoryMigrationMigrateRequest) returns (GitRepositoryMigrationMigrateResponse) {}
+    rpc MigrateFromExternal(GitRepositoryMigrationMigrateFromExternalRequest) returns (GitRepositoryMigrationMigrateFromExternalResponse) {}
 }
 
 service GitRepositoryReadController {
@@ -174,6 +175,19 @@ message GitRepositoryListResponse {
     repeated GitRepositoryResponse results = 1;
 }
 
+message GitRepositoryMigrationMigrateFromExternalRequest {
+    string name = 1;
+    int64 organisation_id = 2;
+    string source_url = 3;
+    string description = 4;
+}
+
+message GitRepositoryMigrationMigrateFromExternalResponse {
+    bool success = 1;
+    string local_path = 2;
+    string message = 3;
+}
+
 message GitRepositoryMigrationMigrateRequest {
     int64 repository_id = 1;
     int64 new_organisation_id = 2;
@@ -217,6 +231,7 @@ message GitRepositoryResponse {
     optional string updated_at = 16;
     int64 organisation = 18;
     optional int64 owner = 19;
+    optional string git_url = 20;
 }
 
 message GitRepositoryRetrieveRequest {
