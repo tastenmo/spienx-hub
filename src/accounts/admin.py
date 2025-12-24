@@ -1,5 +1,32 @@
 from django.contrib import admin
-from accounts.models import Organisation, UserProfile, OrganisationInvite
+from accounts.models import (
+    Organisation,
+    UserProfile,
+    OrganisationInvite,
+    OrganisationMembership,
+    Team,
+    TeamMembership,
+)
+
+
+class OrganisationMembershipInline(admin.TabularInline):
+    model = OrganisationMembership
+    extra = 1
+    fields = ('user', 'role', 'title', 'is_active')
+    autocomplete_fields = ('user',)
+    show_change_link = True
+    verbose_name = "Member"
+    verbose_name_plural = "Members"
+
+
+class TeamMembershipInline(admin.TabularInline):
+    model = TeamMembership
+    extra = 1
+    fields = ('user', 'role', 'is_active')
+    autocomplete_fields = ('user',)
+    show_change_link = True
+    verbose_name = "Team member"
+    verbose_name_plural = "Team members"
 
 
 @admin.register(Organisation)
@@ -10,6 +37,7 @@ class OrganisationAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
     readonly_fields = ['created_at', 'updated_at']
     ordering = ['-created_at']
+    inlines = [OrganisationMembershipInline]
     
     fieldsets = (
         ('Organization Info', {
@@ -39,6 +67,65 @@ class UserProfileAdmin(admin.ModelAdmin):
         }),
         ('Profile', {
             'fields': ('role', 'bio', 'avatar_url', 'is_active')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(OrganisationMembership)
+class OrganisationMembershipAdmin(admin.ModelAdmin):
+    list_display = ['user', 'organisation', 'role', 'is_active', 'created_at']
+    list_filter = ['role', 'is_active', 'organisation', 'created_at']
+    search_fields = ['user__username', 'user__email', 'organisation__name']
+    readonly_fields = ['created_at', 'updated_at']
+    ordering = ['-created_at']
+
+    fieldsets = (
+        ('Membership', {
+            'fields': ('user', 'organisation', 'role', 'title', 'notes', 'is_active')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(Team)
+class TeamAdmin(admin.ModelAdmin):
+    list_display = ['name', 'slug', 'organisation', 'is_active', 'created_at']
+    list_filter = ['organisation', 'is_active', 'created_at']
+    search_fields = ['name', 'slug', 'organisation__name']
+    prepopulated_fields = {'slug': ('name',)}
+    readonly_fields = ['created_at', 'updated_at']
+    ordering = ['name']
+    inlines = [TeamMembershipInline]
+
+    fieldsets = (
+        ('Team', {
+            'fields': ('organisation', 'name', 'slug', 'description', 'is_active')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(TeamMembership)
+class TeamMembershipAdmin(admin.ModelAdmin):
+    list_display = ['user', 'team', 'role', 'is_active', 'created_at']
+    list_filter = ['role', 'is_active', 'team__organisation', 'team', 'created_at']
+    search_fields = ['user__username', 'user__email', 'team__name', 'team__organisation__name']
+    readonly_fields = ['created_at', 'updated_at']
+    ordering = ['-created_at']
+
+    fieldsets = (
+        ('Team Membership', {
+            'fields': ('team', 'user', 'role', 'is_active')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),

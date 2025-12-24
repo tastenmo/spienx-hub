@@ -16,12 +16,19 @@ Including another URLconf
 """
 import os
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from core.views import HealthCheckView, AuthTestView, LoginView, LogoutView, UserView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/health/', HealthCheckView.as_view(), name='health-check'),
+    path('api/auth-test/', AuthTestView.as_view(), name='auth-test'),
+    path('api/auth/login/', LoginView.as_view(), name='api-login'),
+    path('api/auth/logout/', LogoutView.as_view(), name='api-logout'),
+    path('api/auth/user/', UserView.as_view(), name='api-user'),
+    path('accounts/', include('allauth.account.urls')),
 ]
 
 # Serve static files in development

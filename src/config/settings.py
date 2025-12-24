@@ -50,6 +50,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'django_socio_grpc',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'allauth',
+    'allauth.account',
     'core',
     'repositories',
     'accounts',
@@ -65,6 +69,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -170,9 +175,18 @@ GRPC_FRAMEWORK = {
     'GRPC_CHANNEL_PORT': 8000,
     'ROOT_HANDLERS_HOOK': 'config.grpc_handlers.grpc_handlers',
     'ROOT_GRPC_FOLDER': BASE_DIR,  # Set to src/ directory for proper proto generation
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'core.authentication.GrpcSessionAuthentication',
+    ],
+    'GRPC_MIDDLEWARE': [
+        # 'django.contrib.sessions.middleware.SessionMiddleware', # Causes TypeError with Metadata
+        # 'django.contrib.auth.middleware.AuthenticationMiddleware', # Requires SessionMiddleware
+    ],
 }
 
 # CORS configuration
+from corsheaders.defaults import default_headers
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:5173",
@@ -181,18 +195,10 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
+CORS_ALLOW_HEADERS = list(default_headers) + [
     'x-grpc-web',
     'grpc-timeout',
+    'x-csrftoken',
 ]
 
 CORS_EXPOSE_HEADERS = [
@@ -203,4 +209,26 @@ CORS_EXPOSE_HEADERS = [
 
 # Git repository settings
 GIT_DOMAIN = os.getenv('GIT_DOMAIN', 'hub.tastenmo.de')
+
+# Django REST Framework (for REST API endpoints)
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+}
+
+# django-allauth configuration
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+
+SESSION_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SAMESITE = 'None'
 

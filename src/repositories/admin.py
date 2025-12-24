@@ -1,5 +1,15 @@
 from django.contrib import admin
-from repositories.models import GitRepository, GitMirrorRepository, SyncTask
+from repositories.models import GitRepository, GitMirrorRepository, SyncTask, RepositoryAccessPolicy
+from accounts.models import Team
+
+
+class RepositoryAccessPolicyInline(admin.TabularInline):
+    model = RepositoryAccessPolicy
+    extra = 1
+    fields = ('team', 'role', 'permission')
+    autocomplete_fields = ('team',)
+    verbose_name = "Access policy"
+    verbose_name_plural = "Access policies"
 
 
 @admin.register(GitRepository)
@@ -9,6 +19,7 @@ class GitRepositoryAdmin(admin.ModelAdmin):
     search_fields = ['name', 'organisation__name', 'description']
     readonly_fields = ['created_at', 'updated_at', 'local_path', 'git_url']
     ordering = ['-created_at']
+    inlines = [RepositoryAccessPolicyInline]
     
     fieldsets = (
         ('Repository Information', {
@@ -37,6 +48,7 @@ class GitMirrorRepositoryAdmin(admin.ModelAdmin):
     search_fields = ['name', 'source_url', 'organisation__name', 'description']
     readonly_fields = ['created_at', 'updated_at', 'local_path', 'git_url', 'last_synced_at']
     ordering = ['-created_at']
+    inlines = [RepositoryAccessPolicyInline]
     
     fieldsets = (
         ('Repository Information', {
@@ -56,6 +68,28 @@ class GitMirrorRepositoryAdmin(admin.ModelAdmin):
         }),
         ('Git URL', {
             'fields': ('git_url',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(RepositoryAccessPolicy)
+class RepositoryAccessPolicyAdmin(admin.ModelAdmin):
+    list_display = ['repository', 'team', 'role', 'permission', 'created_at']
+    list_filter = ['permission', 'repository__organisation', 'team', 'role']
+    search_fields = ['repository__name', 'team__name', 'repository__organisation__name']
+    readonly_fields = ['created_at', 'updated_at']
+    ordering = ['-created_at']
+
+    fieldsets = (
+        ('Target', {
+            'fields': ('repository', 'team', 'role')
+        }),
+        ('Permission', {
+            'fields': ('permission',)
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),

@@ -1,6 +1,7 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.conf import settings
-from accounts.models import Organisation, UserProfile
+from accounts.models import Organisation, UserProfile, PERMISSION_CHOICES
 
 
 class GitRepository(models.Model):
@@ -53,6 +54,64 @@ class GitRepository(models.Model):
         """Returns the Git clone URL for this repository"""
         domain = settings.GIT_DOMAIN
         return f"https://{domain}/git/{self.organisation.name}/{self.name}.git"
+
+    def effective_permission(self, user) -> str:
+        """Compute highest permission (none/read/write/admin) for a given user on this repo."""
+        from accounts.models import OrganisationMembership, TeamMembership  # local import to avoid cycles
+
+        if not user or not getattr(user, 'is_authenticated', False):
+            return 'none'
+        if getattr(user, 'is_superuser', False):
+            return 'admin'
+
+        # Permission ranking helper
+        rank = RepositoryAccessPolicy.PERMISSION_RANK
+
+        def bump(current: str, candidate: str | None) -> str:
+            if not candidate:
+                return current
+            return candidate if rank.get(candidate, 0) > rank.get(current, 0) else current
+
+        best = 'none'
+
+        # Public repos guarantee at least read
+        if self.is_public:
+            best = bump(best, 'read')
+
+        # Membership role
+        membership = OrganisationMembership.objects.filter(
+            user=user,
+            organisation=self.organisation,
+            is_active=True,
+        ).first()
+        if membership:
+            best = bump(best, membership.role)
+
+        # Role-based policies
+        if membership and membership.role:
+            role_policies = RepositoryAccessPolicy.objects.filter(
+                repository=self,
+                role=membership.role,
+            )
+            for policy in role_policies:
+                best = bump(best, policy.permission)
+
+        # Team-based policies
+        team_ids = TeamMembership.objects.filter(
+            user=user,
+            is_active=True,
+            team__organisation=self.organisation,
+            team__is_active=True,
+        ).values_list('team_id', flat=True)
+        if team_ids:
+            team_policies = RepositoryAccessPolicy.objects.filter(
+                repository=self,
+                team_id__in=team_ids,
+            )
+            for policy in team_policies:
+                best = bump(best, policy.permission)
+
+        return best
 
 
 class GitMirrorRepository(GitRepository):
@@ -121,6 +180,73 @@ class GitMirrorRepository(GitRepository):
 
     def __str__(self):
         return f"{self.organisation.name}/{self.name} (mirror)"
+
+
+class RepositoryAccessPolicy(models.Model):
+    """Repository-level access policies for teams or roles."""
+
+    PERMISSION_CHOICES = PERMISSION_CHOICES
+    PERMISSION_RANK = {
+        'none': 0,
+        'read': 1,
+        'write': 2,
+        'admin': 3,
+    }
+
+    repository = models.ForeignKey(
+        GitRepository,
+        on_delete=models.CASCADE,
+        related_name='access_policies'
+    )
+    team = models.ForeignKey(
+        'accounts.Team',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='repository_policies'
+    )
+    role = models.CharField(
+        max_length=20,
+        choices=PERMISSION_CHOICES,
+        null=True,
+        blank=True,
+        help_text="Organisation membership role this policy applies to",
+    )
+    permission = models.CharField(max_length=20, choices=PERMISSION_CHOICES, default='none')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['repository', 'team', 'role']
+        constraints = [
+            models.CheckConstraint(
+                check=(
+                    (models.Q(team__isnull=False) & models.Q(role__isnull=True)) |
+                    (models.Q(team__isnull=True) & models.Q(role__isnull=False))
+                ),
+                name='repository_policy_exactly_one_subject',
+            ),
+        ]
+        unique_together = [
+            ['repository', 'team'],
+            ['repository', 'role'],
+        ]
+        indexes = [
+            models.Index(fields=['repository', 'team']),
+            models.Index(fields=['repository', 'role']),
+        ]
+
+    def clean(self):
+        team_set = self.team_id is not None
+        role_set = bool(self.role)
+        if team_set and role_set:
+            raise ValidationError("Choose either team or role, not both.")
+        if not team_set and not role_set:
+            raise ValidationError("You must set either a team or a role.")
+
+    def __str__(self):
+        subject = self.team or self.role or "unknown"
+        return f"Policy {subject} -> {self.repository} ({self.permission})"
 
 
 class SyncTask(models.Model):

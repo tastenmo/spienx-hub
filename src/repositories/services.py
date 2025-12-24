@@ -1,7 +1,9 @@
 import os
 from django.conf import settings
+from django.db.models import Q
 from django_socio_grpc import generics, proto_serializers
 from django_socio_grpc.decorators import grpc_action
+from django_socio_grpc.permissions import GRPCActionBasePermission
 from repositories.models import GitRepository, GitMirrorRepository, SyncTask
 from repositories.grpc import repositories_pb2
 from git import Repo as git_repo
@@ -9,6 +11,7 @@ from accounts.models import Organisation
 from celery import current_app
 import grpc
 from rest_framework import serializers
+from rest_framework.permissions import SAFE_METHODS
 
 
 # ============================================================================
@@ -66,6 +69,46 @@ class SyncTaskSerializer(proto_serializers.ModelProtoSerializer):
         }
 
 
+class RepoPolicyPermission(GRPCActionBasePermission):
+    """Use repo/team/role policies: safe = allow; unsafe = require write/admin on repo."""
+
+    RANK = {'none': 0, 'read': 1, 'write': 2, 'admin': 3}
+
+    def has_permission(self, context, service):
+        # Ensure user is authenticated
+        if not context.user or not context.user.is_authenticated:
+            print(f"RepoPolicyPermission: User not authenticated. User: {context.user}")
+            return False
+            
+        # Debug logging
+        action = getattr(service, 'action', 'unknown')
+        print(f"RepoPolicyPermission: user={context.user.username}, superuser={context.user.is_superuser}, method={context.method}, action={action}")
+
+        # Allow safe methods (GET, HEAD, OPTIONS) or safe actions (list, retrieve)
+        safe_actions = ['list', 'retrieve']
+        if context.method in SAFE_METHODS or action in safe_actions:
+            return True
+            
+        return bool(getattr(context.user, 'is_superuser', False))
+
+    def has_object_permission(self, context, service, obj):
+        # Ensure user is authenticated
+        if not context.user or not context.user.is_authenticated:
+            return False
+
+        action = getattr(service, 'action', 'unknown')
+        safe_actions = ['list', 'retrieve']
+
+        if context.method in SAFE_METHODS or action in safe_actions:
+            return True
+        if getattr(context.user, 'is_superuser', False):
+            return True
+        if hasattr(obj, 'effective_permission'):
+            perm = obj.effective_permission(context.user)
+            return self.RANK.get(perm, 0) >= self.RANK['write']
+        return False
+
+
 # ============================================================================
 # ADMINISTRATION SERVICES (AsyncModelService - CRUD)
 # ============================================================================
@@ -77,6 +120,7 @@ class GitRepositoryAdminService(generics.AsyncModelService):
     """
     queryset = GitRepository.objects.all()
     serializer_class = GitRepositorySerializer
+    permission_classes = [RepoPolicyPermission]
 
 
 class GitMirrorRepositoryAdminService(generics.AsyncModelService):
@@ -86,6 +130,7 @@ class GitMirrorRepositoryAdminService(generics.AsyncModelService):
     """
     queryset = GitMirrorRepository.objects.all()
     serializer_class = GitMirrorRepositorySerializer
+    permission_classes = [RepoPolicyPermission]
 
 
 class SyncTaskAdminService(generics.AsyncModelService):
@@ -95,6 +140,7 @@ class SyncTaskAdminService(generics.AsyncModelService):
     """
     queryset = SyncTask.objects.all()
     serializer_class = SyncTaskSerializer
+    permission_classes = [RepoPolicyPermission]
 
 
 # ============================================================================
@@ -108,6 +154,7 @@ class GitRepositoryReadService(generics.AsyncReadOnlyModelService):
     """
     queryset = GitRepository.objects.all()
     serializer_class = GitRepositorySerializer
+    permission_classes = [RepoPolicyPermission]
 
 
 class GitMirrorRepositoryReadService(generics.AsyncReadOnlyModelService):
@@ -117,6 +164,47 @@ class GitMirrorRepositoryReadService(generics.AsyncReadOnlyModelService):
     """
     queryset = GitMirrorRepository.objects.all()
     serializer_class = GitMirrorRepositorySerializer
+    permission_classes = [RepoPolicyPermission]
+
+    def get_queryset(self):
+        # Called during service registration without context
+        # Filter at request time via has_object_permission instead
+        return super().get_queryset()
+    
+    async def list(self, request, context=None):
+        # Override list to apply user-based filtering
+        qs = super().get_queryset()
+        user = getattr(request, 'user', None)
+
+        if not user or not getattr(user, 'is_authenticated', False):
+            qs = qs.filter(is_public=True)
+        elif not getattr(user, 'is_superuser', False):
+            from accounts.models import OrganisationMembership, TeamMembership
+
+            org_ids = OrganisationMembership.objects.filter(
+                user=user,
+                is_active=True,
+            ).exclude(role='none').values_list('organisation_id', flat=True)
+
+            member_roles = OrganisationMembership.objects.filter(
+                user=user,
+                is_active=True,
+            ).exclude(role='none').values_list('role', flat=True)
+
+            team_ids = TeamMembership.objects.filter(
+                user=user,
+                is_active=True,
+                team__is_active=True,
+            ).values_list('team_id', flat=True)
+
+            qs = qs.filter(
+                Q(is_public=True)
+                | Q(organisation_id__in=org_ids)
+                | Q(access_policies__team_id__in=team_ids)
+                | Q(access_policies__role__in=member_roles)
+            ).distinct()
+        
+        return qs
 
 
 class SyncTaskReadService(generics.AsyncReadOnlyModelService):
@@ -126,6 +214,7 @@ class SyncTaskReadService(generics.AsyncReadOnlyModelService):
     """
     queryset = SyncTask.objects.all()
     serializer_class = SyncTaskSerializer
+    permission_classes = [RepoPolicyPermission]
 
 
 # ============================================================================
@@ -134,6 +223,7 @@ class SyncTaskReadService(generics.AsyncReadOnlyModelService):
 
 class GitRepositoryCreationService(generics.GenericService):
     """Service for creating bare Git repositories"""
+    permission_classes = [RepoPolicyPermission]
 
     @grpc_action(
         request=[
@@ -181,6 +271,7 @@ class GitRepositoryCreationService(generics.GenericService):
 
 class GitMirrorRepositoryMirroringService(generics.GenericService):
     """Service for managing mirror repositories"""
+    permission_classes = [RepoPolicyPermission]
 
     @grpc_action(
         request=[
@@ -235,6 +326,7 @@ class GitMirrorRepositoryMirroringService(generics.GenericService):
 
 class GitRepositoryMigrationService(generics.GenericService):
     """Service for migrating repositories"""
+    permission_classes = [RepoPolicyPermission]
 
     @grpc_action(
         request=[
@@ -345,6 +437,7 @@ class GitRepositoryMigrationService(generics.GenericService):
 
 class GitRepositorySyncService(generics.GenericService):
     """Service for syncing mirror repositories"""
+    permission_classes = [RepoPolicyPermission]
 
     @grpc_action(
         request=[
@@ -386,6 +479,7 @@ class GitRepositorySyncService(generics.GenericService):
 
 class TaskStatusService(generics.GenericService):
     """Service for monitoring task progress"""
+    permission_classes = [RepoPolicyPermission]
 
     @grpc_action(
         request=[
