@@ -1,14 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import User
+from guardian.shortcuts import assign_perm, remove_perm
 
 
-# Shared permission levels used across organisations and repositories
-PERMISSION_CHOICES = [
-    ('none', 'None'),
-    ('read', 'Read'),
-    ('write', 'Write'),
-    ('admin', 'Admin'),
-]
+# Standard permission codenames used with django-guardian
+PERMISSIONS = {
+    'read': 'view',
+    'write': 'change',
+    'admin': 'delete',  # Admin can delete/manage
+}
 
 
 class Organisation(models.Model):
@@ -39,11 +39,35 @@ class Organisation(models.Model):
     def __str__(self):
         return self.name
 
+    def grant_permission(self, user, permission_level):
+        """Grant or update user permission on this organisation."""
+        # Remove all existing permissions first
+        for perm in PERMISSIONS.values():
+            remove_perm(f'accounts.{perm}_organisation', user, self)
+        
+        # Assign the appropriate permission
+        if permission_level in PERMISSIONS:
+            assign_perm(f'accounts.{PERMISSIONS[permission_level]}_organisation', user, self)
+
+    def user_permission(self, user):
+        """Get user's permission level on this organisation."""
+        if user.has_perm('accounts.delete_organisation', self):
+            return 'admin'
+        elif user.has_perm('accounts.change_organisation', self):
+            return 'write'
+        elif user.has_perm('accounts.view_organisation', self):
+            return 'read'
+        return 'none'
+
 
 class OrganisationMembership(models.Model):
-    """Membership of a user in an organisation with a permission role."""
+    """Membership of a user in an organisation (permission managed via guardian)."""
 
-    ROLE_CHOICES = PERMISSION_CHOICES
+    ROLE_CHOICES = [
+        ('read', 'Read'),
+        ('write', 'Write'),
+        ('admin', 'Admin'),
+    ]
 
     user = models.ForeignKey(
         User,
@@ -72,6 +96,16 @@ class OrganisationMembership(models.Model):
 
     def __str__(self):
         return f"{self.user.username} -> {self.organisation.name} ({self.role})"
+
+    def save(self, *args, **kwargs):
+        """Sync role with guardian permissions on save."""
+        super().save(*args, **kwargs)
+        if self.is_active:
+            self.organisation.grant_permission(self.user, self.role)
+        else:
+            # Remove all permissions if membership is inactive
+            for perm in PERMISSIONS.values():
+                remove_perm(f'accounts.{perm}_organisation', self.user, self.organisation)
 
 
 class Team(models.Model):
@@ -137,9 +171,7 @@ class TeamMembership(models.Model):
 
 
 class UserProfile(models.Model):
-    """Extended user profile with organization and role information"""
-
-    ROLE_CHOICES = PERMISSION_CHOICES  # Kept for backward compatibility; prefer OrganisationMembership
+    """Extended user profile with organization and role information (legacy support)"""
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     organisation = models.ForeignKey(
@@ -149,7 +181,6 @@ class UserProfile(models.Model):
         blank=True,
         related_name='members'
     )
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='read')
     bio = models.TextField(blank=True)
     avatar_url = models.URLField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
@@ -159,7 +190,7 @@ class UserProfile(models.Model):
     class Meta:
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['organisation', 'role']),
+            models.Index(fields=['organisation']),
             models.Index(fields=['user', 'organisation']),
         ]
 
@@ -177,13 +208,19 @@ class OrganisationInvite(models.Model):
         ('declined', 'Declined'),
     ]
 
+    ROLE_CHOICES = [
+        ('read', 'Read'),
+        ('write', 'Write'),
+        ('admin', 'Admin'),
+    ]
+
     organisation = models.ForeignKey(
         Organisation,
         on_delete=models.CASCADE,
         related_name='invites'
     )
     email = models.EmailField()
-    role = models.CharField(max_length=20, choices=PERMISSION_CHOICES, default='read')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='read')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     invited_by = models.ForeignKey(
         User,

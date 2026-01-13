@@ -55,8 +55,8 @@ class OrganisationAdmin(admin.ModelAdmin):
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'organisation', 'role', 'is_active', 'created_at']
-    list_filter = ['role', 'is_active', 'organisation', 'created_at']
+    list_display = ['user', 'organisation', 'is_active', 'created_at']
+    list_filter = ['is_active', 'organisation', 'created_at']
     search_fields = ['user__username', 'user__email', 'organisation__name']
     readonly_fields = ['created_at', 'updated_at']
     ordering = ['-created_at']
@@ -66,7 +66,7 @@ class UserProfileAdmin(admin.ModelAdmin):
             'fields': ('user', 'organisation')
         }),
         ('Profile', {
-            'fields': ('role', 'bio', 'avatar_url', 'is_active')
+            'fields': ('bio', 'avatar_url', 'is_active')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),

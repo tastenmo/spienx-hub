@@ -26,6 +26,7 @@ django-celery-beat = "^2.5.0"
 django-cors-headers = "^4.9.0"
 django-allauth = "^0.57.0"
 djangorestframework = "^3.14.0"
+django-guardian = "^2.4.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.0.2"

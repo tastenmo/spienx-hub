@@ -796,6 +796,21 @@ asgiref = ">=3.6"
 django = ">=4.2"
 
 [[package]]
+name = "django-guardian"
+version = "2.4.0"
+description = "Implementation of per object permissions for Django."
+optional = false
+python-versions = ">=3.5"
+groups = ["main"]
+files = [
+    {file = "django-guardian-2.4.0.tar.gz", hash = "sha256:c58a68ae76922d33e6bdc0e69af1892097838de56e93e78a8361090bcd9f89a0"},
+    {file = "django_guardian-2.4.0-py3-none-any.whl", hash = "sha256:440ca61358427e575323648b25f8384739e54c38b3d655c81d75e0cd0d61b697"},
+]
+
+[package.dependencies]
+Django = ">=2.2"
+
+[[package]]
 name = "django-socio-grpc"
 version = "0.1.1"
 description = "Fork of django-grpc-framework with more feature maintained by the socio team. Make GRPC with django easy."
@@ -2129,4 +2144,4 @@ testing = ["coverage[toml]", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "5b6f58e8ebfdf96abb048ade83e6c31f8b140ef326b2e7ef3a437133accc6066"
+content-hash = "21de69420e056aca5a6025c3a8cc50989ce741181d940997ddecaba608613e3d"

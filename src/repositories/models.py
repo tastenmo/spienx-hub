@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.conf import settings
-from accounts.models import Organisation, UserProfile, PERMISSION_CHOICES
+from accounts.models import Organisation, UserProfile, PERMISSIONS
 
 
 class GitRepository(models.Model):
@@ -185,7 +185,12 @@ class GitMirrorRepository(GitRepository):
 class RepositoryAccessPolicy(models.Model):
     """Repository-level access policies for teams or roles."""
 
-    PERMISSION_CHOICES = PERMISSION_CHOICES
+    PERMISSION_CHOICES = [
+        ('none', 'None'),
+        ('read', 'Read'),
+        ('write', 'Write'),
+        ('admin', 'Admin'),
+    ]
     PERMISSION_RANK = {
         'none': 0,
         'read': 1,
