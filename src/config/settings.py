@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'core',
     'repositories',
     'accounts',
+    'documents',
 ]
 
 MIDDLEWARE = [
@@ -158,6 +159,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR.parent / 'staticfiles'
+
+# Media files (uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR.parent / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

@@ -1,7 +1,13 @@
+import os
+
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from accounts.models import Organisation, UserProfile, PERMISSIONS
+
+from git import Repo, InvalidGitRepositoryError, NoSuchPathError
+
+
 
 
 class GitRepository(models.Model):
@@ -112,7 +118,26 @@ class GitRepository(models.Model):
                 best = bump(best, policy.permission)
 
         return best
+    
+    def create_workdir(self, path: str, reference: str = "HEAD") -> Repo:
+        """Create a working copy instance for this repository at the given path."""
 
+        os.makedirs(path, exist_ok=True)
+
+        if self.is_bare:
+
+            try:
+                bare_repo = Repo(self.local_path)
+
+                bare_repo.git.worktree('add', path, reference)
+            except (InvalidGitRepositoryError, NoSuchPathError) as e:
+                raise Exception(f"Failed to create worktree: {str(e)}")
+            
+            working_repo = Repo(path)
+            return working_repo
+        else:
+            return Repo(self.local_path)
+        
 
 class GitMirrorRepository(GitRepository):
     """Model representing a mirrored Git repository from external sources"""

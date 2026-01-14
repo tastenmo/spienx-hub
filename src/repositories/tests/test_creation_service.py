@@ -15,6 +15,9 @@ from asgiref.sync import async_to_sync
 class TestGitRepositoryCreationService(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', email='test@example.com')
+        self.user.is_superuser = True  # Make user superuser to pass permissions
+        self.user.save()
+        
         self.org = Organisation.objects.create(
             name='Test Org',
             slug='test-org',
@@ -29,9 +32,10 @@ class TestGitRepositoryCreationService(TestCase):
     def tearDown(self):
         self.fake_grpc.close()
 
+    @patch('repositories.services.RepoPolicyPermission.has_permission', return_value=True)
     @patch('repositories.tasks.git_tasks.GitPythonRepo')
     @patch('repositories.tasks.git_tasks.os.makedirs')
-    def test_create_repository(self, mock_makedirs, mock_git_repo):
+    def test_create_repository(self, mock_makedirs, mock_git_repo, mock_permission):
         async def run_test():
             # Mock Celery task
             mock_task = MagicMock()

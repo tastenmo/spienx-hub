@@ -28,9 +28,11 @@ urlpatterns = [
     path('api/auth/login/', LoginView.as_view(), name='api-login'),
     path('api/auth/logout/', LogoutView.as_view(), name='api-logout'),
     path('api/auth/user/', UserView.as_view(), name='api-user'),
+    path('api/documents/', include('documents.urls')),
     path('accounts/', include('allauth.account.urls')),
 ]
 
 # Serve static files in development
 if settings.DEBUG or os.getenv('SERVE_STATIC', 'True') == 'True':
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

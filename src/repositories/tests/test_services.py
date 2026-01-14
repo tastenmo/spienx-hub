@@ -20,8 +20,7 @@ class GitRepositoryServiceTest(TestCase):
         )
         self.profile = UserProfile.objects.create(
             user=self.user,
-            organisation=self.org,
-            role='admin'
+            organisation=self.org
         )
 
     def test_service_exists(self):
@@ -42,8 +41,7 @@ class GitRepositoryIntegrationTest(TestCase):
         )
         self.profile = UserProfile.objects.create(
             user=self.user,
-            organisation=self.org,
-            role='admin'
+            organisation=self.org
         )
 
     def test_repository_workflow(self):

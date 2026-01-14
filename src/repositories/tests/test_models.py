@@ -3,6 +3,10 @@ from django.contrib.auth.models import User
 from repositories.models import GitRepository, GitMirrorRepository, SyncTask
 from accounts.models import Organisation, UserProfile
 import uuid
+import os
+import tempfile
+import shutil
+from git import Repo
 
 
 class GitRepositoryModelTest(TestCase):
@@ -18,8 +22,7 @@ class GitRepositoryModelTest(TestCase):
         )
         self.profile = UserProfile.objects.create(
             user=self.user,
-            organisation=self.org,
-            role='admin'
+            organisation=self.org
         )
 
     def test_create_bare_repository(self):
@@ -84,6 +87,153 @@ class GitRepositoryModelTest(TestCase):
         self.assertIn('test-repo.git', repo.git_url)
         self.assertIn(self.org.name, repo.git_url)
 
+    def test_create_workdir_with_bare_repository(self):
+        """Test creating a working directory from a bare repository"""
+        # Create a temporary directory for testing
+        temp_dir = tempfile.mkdtemp()
+        bare_repo_path = os.path.join(temp_dir, 'bare-repo.git')
+        workdir_path = os.path.join(temp_dir, 'workdir')
+        
+        try:
+            # Initialize a bare repository with some content
+            init_repo = Repo.init(bare_repo_path, bare=True)
+            
+            # Create a temporary clone to add content
+            temp_clone_path = os.path.join(temp_dir, 'temp-clone')
+            clone = Repo.clone_from(f'file://{bare_repo_path}', temp_clone_path)
+            
+            # Add a test file
+            test_file = os.path.join(temp_clone_path, 'test.txt')
+            with open(test_file, 'w') as f:
+                f.write('Test content')
+            
+            clone.index.add(['test.txt'])
+            clone.index.commit('Initial commit')
+            clone.remote('origin').push('master:master')
+            
+            # Clean up temp clone
+            shutil.rmtree(temp_clone_path)
+            
+            # Create GitRepository model instance
+            repo = GitRepository.objects.create(
+                name='workdir-test-repo',
+                organisation=self.org,
+                local_path=bare_repo_path,
+                is_bare=True
+            )
+            
+            # Test create_workdir
+            working_repo = repo.create_workdir(workdir_path, reference='master')
+            
+            # Verify the worktree was created
+            self.assertTrue(os.path.exists(workdir_path))
+            self.assertTrue(os.path.isdir(workdir_path))
+            
+            # Verify the test file exists in worktree
+            test_file_in_workdir = os.path.join(workdir_path, 'test.txt')
+            self.assertTrue(os.path.exists(test_file_in_workdir))
+            
+            # Verify working_repo is a valid Repo object
+            self.assertIsInstance(working_repo, Repo)
+            self.assertEqual(working_repo.working_dir, workdir_path)
+            
+            # Verify file content
+            with open(test_file_in_workdir, 'r') as f:
+                content = f.read()
+            self.assertEqual(content, 'Test content')
+            
+        finally:
+            # Clean up
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+    
+    def test_create_workdir_with_non_bare_repository(self):
+        """Test create_workdir with a non-bare repository"""
+        # Create a temporary non-bare repository
+        temp_dir = tempfile.mkdtemp()
+        repo_path = os.path.join(temp_dir, 'non-bare-repo')
+        
+        try:
+            # Initialize a non-bare repository
+            git_repo = Repo.init(repo_path)
+            
+            # Add a test file
+            test_file = os.path.join(repo_path, 'readme.txt')
+            with open(test_file, 'w') as f:
+                f.write('Non-bare repo content')
+            
+            git_repo.index.add(['readme.txt'])
+            git_repo.index.commit('Initial commit')
+            
+            # Create GitRepository model instance
+            repo = GitRepository.objects.create(
+                name='non-bare-test-repo',
+                organisation=self.org,
+                local_path=repo_path,
+                is_bare=False
+            )
+            
+            # Test create_workdir - should return the existing repo
+            # For non-bare repos, the path is ignored
+            returned_repo = repo.create_workdir(repo_path)
+            
+            # Verify it returns the existing non-bare repository
+            self.assertIsInstance(returned_repo, Repo)
+            self.assertEqual(returned_repo.working_dir, repo_path)
+            
+        finally:
+            # Clean up
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+
+    def test_create_workdir_creates_directory(self):
+        """Test that create_workdir creates the target directory if it doesn't exist"""
+        temp_dir = tempfile.mkdtemp()
+        bare_repo_path = os.path.join(temp_dir, 'bare-repo.git')
+        workdir_path = os.path.join(temp_dir, 'nested', 'workdir')
+        
+        try:
+            # Initialize a bare repository with content
+            init_repo = Repo.init(bare_repo_path, bare=True)
+            
+            # Create a temporary clone to add content
+            temp_clone_path = os.path.join(temp_dir, 'temp-clone')
+            clone = Repo.clone_from(f'file://{bare_repo_path}', temp_clone_path)
+            
+            test_file = os.path.join(temp_clone_path, 'test.txt')
+            with open(test_file, 'w') as f:
+                f.write('Test')
+            
+            clone.index.add(['test.txt'])
+            clone.index.commit('Initial commit')
+            clone.remote('origin').push('master:master')
+            
+            shutil.rmtree(temp_clone_path)
+            
+            # Create GitRepository
+            repo = GitRepository.objects.create(
+                name='nested-workdir-test',
+                organisation=self.org,
+                local_path=bare_repo_path,
+                is_bare=True
+            )
+            
+            # Verify the nested directory doesn't exist yet
+            self.assertFalse(os.path.exists(workdir_path))
+            
+            # Create workdir
+            repo.create_workdir(workdir_path, reference='master')
+            
+            # Verify the directory was created
+            self.assertTrue(os.path.exists(workdir_path))
+            self.assertTrue(os.path.isdir(workdir_path))
+            
+        finally:
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+
+    
+
 
 class GitMirrorRepositoryModelTest(TestCase):
     """Test suite for GitMirrorRepository model"""
@@ -98,8 +248,7 @@ class GitMirrorRepositoryModelTest(TestCase):
         )
         self.profile = UserProfile.objects.create(
             user=self.user,
-            organisation=self.org,
-            role='admin'
+            organisation=self.org
         )
 
     def test_create_mirror_repository(self):
