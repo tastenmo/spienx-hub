@@ -20,7 +20,7 @@ from django_socio_grpc.grpc_web import grpcASGI
 from config.grpc_handlers import grpc_handlers
 
 # Create gRPC-Web ASGI application
-application = grpcASGI(django_asgi_app)
+application = grpcASGI(django_asgi_app, enable_cors=False)
 
 # Register gRPC services by calling grpc_handlers with the grpcASGI instance
 # Note: Proto files must be generated first with: python manage.py generateproto
