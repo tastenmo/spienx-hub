@@ -46,29 +46,46 @@ class Section(models.Model):
 
     sphinx_id = models.CharField(max_length=255)
 
-    hash = models.CharField(max_length=255)
+    hash = models.CharField(max_length=40)
 
     source_path = models.CharField(max_length=255)
 
     start_line = models.IntegerField()
 
     end_line = models.IntegerField()
-    
-    body = models.TextField()
 
+    content_block = models.ForeignKey(
+            'ContentBlock', 
+            on_delete=models.PROTECT, 
+            related_name='sections'
+        )    
     class Meta:
         unique_together = ('page', 'hash')
 
     def __str__(self) -> str:
         return f"{self.page.current_page_name} - {self.title}"
     
+class ContentBlock(models.Model):
+    """
+    Stores unique content blocks identified by their hash.
+    Primary key is the hash itself for efficient lookups and storage.
+    """
+    content_hash = models.CharField(max_length=40, primary_key=True)
+
+    jsx_content = models.TextField()
+
+    def __str__(self) -> str:
+        return self.content_hash
+
 
 class StaticAsset(models.Model):
     document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='static_assets')
     
     path = models.CharField(max_length=255)
 
-    hash = models.CharField(max_length=255)
+    hash = models.CharField(max_length=40)
+
+    file = models.FileField(upload_to='static_assets/')
 
     class Meta:
         unique_together = ('document', 'path')

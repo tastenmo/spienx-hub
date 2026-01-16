@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package config.documents;
+
+import "google/protobuf/struct.proto";
+
+service DocumentReadController {
+    rpc List(DocumentListRequest) returns (DocumentListResponse) {}
+    rpc Retrieve(DocumentRetrieveRequest) returns (DocumentResponse) {}
+    rpc StreamPages(DocumentReadStreamPagesRequest) returns (stream PageResponse) {}
+}
+
+message ContentBlockResponse {
+    string content_hash = 1;
+    string jsx_content = 2;
+}
+
+message DocumentListRequest {
+}
+
+message DocumentListResponse {
+    repeated DocumentResponse results = 1;
+}
+
+message DocumentReadStreamPagesRequest {
+    int64 document_id = 1;
+}
+
+message DocumentResponse {
+    optional int64 id = 1;
+    string title = 2;
+    int64 source = 3;
+    string reference = 4;
+    string workdir = 5;
+    string conf_path = 6;
+    optional string last_build_at = 7;
+    optional google.protobuf.Struct global_context = 8;
+}
+
+message DocumentRetrieveRequest {
+    int64 id = 1;
+}
+
+message PageResponse {
+    string current_page_name = 1;
+    string title = 2;
+    optional google.protobuf.Struct context = 3;
+    repeated SectionResponse sections = 4;
+}
+
+message SectionResponse {
+    string title = 1;
+    string sphinx_id = 2;
+    string hash = 3;
+    string source_path = 4;
+    int32 start_line = 5;
+    int32 end_line = 6;
+    optional ContentBlockResponse content_block = 7;
+}
+

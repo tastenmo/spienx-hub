@@ -18,6 +18,7 @@ from repositories.services import (
     GitRepositorySyncService,
     TaskStatusService,
 )
+from documents.services import DocumentReadService
 
 
 def grpc_handlers(server):
@@ -44,3 +45,7 @@ def grpc_handlers(server):
     app_registry.register(GitRepositoryMigrationService, service_file_path='repositories.grpc')
     app_registry.register(GitRepositorySyncService, service_file_path='repositories.grpc')
     app_registry.register(TaskStatusService, service_file_path='repositories.grpc')
+
+    # Register documents app services
+    doc_registry = AppHandlerRegistry('documents', server)
+    doc_registry.register(DocumentReadService, service_file_path='documents.grpc')

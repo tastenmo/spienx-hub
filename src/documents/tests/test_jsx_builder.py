@@ -70,7 +70,7 @@ class TestDjangoJsxOutputImplementation:
         assert s1.title == "Section 1"
         assert s1.source_path == "index.rst"
         assert s1.start_line == 10
-        assert s1.body == "<p>Content 1</p>"
+        assert s1.content_block.jsx_content == "<p>Content 1</p>"
         
         s2 = sections.get(hash="hash2")
         assert s2.title == "Section 2"
@@ -91,6 +91,65 @@ class TestDjangoJsxOutputImplementation:
         # Verify StaticAsset created
         asset = StaticAsset.objects.get(document=document, path="_static/style.css")
         assert asset.hash == "abc123def456"
+
+    def test_content_block_deduplication_across_pages(self, document):
+        """Test that sections with the same hash on different pages share the same ContentBlock"""
+        from documents.models import Page, Section, ContentBlock
+
+        impl = DjangoJsxOutputImplementation()
+
+        # Create first page with a section
+        ctx1 = {
+            "current_page_name": "page1",
+            "title": "Page 1",
+            "section_list": [
+                {
+                    "id": "s1",
+                    "title": "Section 1",
+                    "hash": "shared_hash_abc",
+                    "source": "p1.rst",
+                    "startline": 1,
+                    "body": "<p>Shared Content</p>"
+                }
+            ]
+        }
+        impl.createPage(ctx1, docId=document.pk)
+
+        # Create second page with a section having the same hash
+        ctx2 = {
+            "current_page_name": "page2",
+            "title": "Page 2",
+            "section_list": [
+                {
+                    "id": "s2",
+                    "title": "Section 2",
+                    "hash": "shared_hash_abc",
+                    "source": "p2.rst",
+                    "startline": 1,
+                    "body": "<p>Shared Content</p>"
+                }
+            ]
+        }
+        impl.createPage(ctx2, docId=document.pk)
+
+        # Retrieve pages
+        page1 = Page.objects.get(document=document, current_page_name="page1")
+        page2 = Page.objects.get(document=document, current_page_name="page2")
+
+        # Retrieve sections
+        sec1 = page1.sections.get(hash="shared_hash_abc")
+        sec2 = page2.sections.get(hash="shared_hash_abc")
+
+        # Verify they are different sections
+        assert sec1.pk != sec2.pk
+
+        # Verify they share the same content block
+        assert sec1.content_block == sec2.content_block
+        assert sec1.content_block.content_hash == "shared_hash_abc"
+        assert sec1.content_block.jsx_content == "<p>Shared Content</p>"
+
+        # Verify only one ContentBlock exists for this hash
+        assert ContentBlock.objects.filter(content_hash="shared_hash_abc").count() == 1
     
     def test_finalize_updates_document(self, document):
         """Test that finalize properly updates document metadata"""
@@ -210,12 +269,12 @@ This is a test documentation.
         for section in sections:
             assert section.title, "Section should have a title"
             assert section.hash, "Section should have a hash"
-            assert section.body, "Section should have body content"
+            assert section.content_block.jsx_content, "Section should have body content"
 
         for section in sections:
             assert section.title == "Test Documentation"
             assert section.hash is not None
-            assert section.body is not None
+            assert section.content_block.jsx_content is not None
 
     
     def test_build_sphinxdocs_document_not_found(self):
@@ -248,7 +307,40 @@ This is a test documentation.
                 
                 # Should return None when repo is missing
                 assert result is None
-    
+
+    def test_build_sphinxdocs_conf_path_handling(self, sphinx_repo_and_doc):
+        """Test that build_sphinxdocs correctly resolves conf_path relative to checkout"""
+        document, temp_dir = sphinx_repo_and_doc
+        
+        # Update document to use a relative conf_path and verify it works
+        # The repo has conf.py at root.
+        document.conf_path = "." 
+        document.save()
+        
+        with patch('documents.builder.jsx_builder.Sphinx') as MockSphinx:
+             # Mock the build method
+            MockSphinx.return_value.build.return_value = None
+            
+            result = build_sphinxdocs(document.pk)
+            
+            assert result is True
+            
+            # Check initialization args of Sphinx
+            call_args = MockSphinx.call_args
+            assert call_args is not None
+            
+            # Check 'confdir' argument (index 1 of args or kwarg)
+            # Sphinx(srcdir, confdir, ...)
+            
+            kwargs = call_args.kwargs
+            confdir = kwargs.get('confdir')
+            srcdir = kwargs.get('srcdir')
+            
+            # confdir should NOT be just "." but an absolute path to the checkout
+            assert confdir != "."
+            assert os.path.isabs(confdir)
+            assert os.path.exists(os.path.join(confdir, 'conf.py'))
+
     def test_build_sphinxdocs_exception_handling(self, sphinx_repo_and_doc):
         """Test that build_sphinxdocs handles exceptions gracefully"""
         document, temp_dir = sphinx_repo_and_doc
