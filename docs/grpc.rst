@@ -38,7 +38,35 @@ Create or update `services.py` in your app. The service should inherit from one 
         queryset = MyModel.objects.all()
         serializer_class = MyModelProtoSerializer
 
-3. Register the Service
+3. Define Custom Actions (Optional)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you need custom RPC methods beyond standard CRUD operations (like streaming or specific business logic), use the ``@grpc_action`` decorator.
+
+.. code-block:: python
+
+    from django_socio_grpc.decorators import grpc_action
+    from .serializers import PageProtoSerializer
+
+    class MyModelService(generics.AsyncReadOnlyModelService):
+        # ...
+
+        @grpc_action(
+            request=[{"name": "some_id", "type": "int64"}],
+            response=PageProtoSerializer,
+            response_stream=True,  # Set to True for streaming responses
+        )
+        async def StreamThings(self, request, context):
+            some_id = request.some_id
+            
+            # Use aget for async retrieval
+            instance = await MyModel.objects.prefetch_related('related_items').aget(pk=some_id)
+            
+            for item in instance.related_items.all():
+                serializer = PageProtoSerializer(item)
+                yield serializer.message
+
+4. Register the Service
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Register your new service in `src/config/grpc_handlers.py` to expose it.
@@ -53,7 +81,7 @@ Register your new service in `src/config/grpc_handlers.py` to expose it.
         app_registry = AppHandlerRegistry('myapp', server)
         app_registry.register(MyModelService, service_file_path='myapp.grpc')
 
-4. Generate Proto Files
+5. Generate Proto Files
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Run the management command to generate the `.proto` definitions and the corresponding Python gRPC code (`_pb2.py` and `_pb2_grpc.py`).
@@ -65,7 +93,7 @@ Run the management command to generate the `.proto` definitions and the correspo
 
 This will create/update the `src/myapp/grpc/` directory.
 
-5. Link Serializer to Proto Classes
+6. Link Serializer to Proto Classes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Now that the proto files are generated, update your serializer to explicitly link to the generated message classes. This is often required for the serializer to correctly instantiation return messages, especially in async contexts.
@@ -82,7 +110,7 @@ Now that the proto files are generated, update your serializer to explicitly lin
             proto_class_list = myapp_pb2.MyModelListResponse
             fields = ['id', 'name', 'created_at']
 
-6. Test the Service
+7. Test the Service
 ^^^^^^^^^^^^^^^^^^^
 
 Create tests using `FakeFullAIOGRPC` to verify your service without spinning up a full server.
