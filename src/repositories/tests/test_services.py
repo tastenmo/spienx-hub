@@ -1,6 +1,6 @@
 from django.test import TestCase
 from repositories.models import GitRepository, GitMirrorRepository, SyncTask
-from repositories.services import GitRepositoryAdminService
+from repositories.services import GitRepositoryService
 from accounts.models import Organisation, UserProfile
 from django.contrib.auth.models import User
 from unittest.mock import patch, MagicMock
@@ -24,8 +24,8 @@ class GitRepositoryServiceTest(TestCase):
         )
 
     def test_service_exists(self):
-        """Test that GitRepositoryAdminService exists"""
-        self.assertIsNotNone(GitRepositoryAdminService)
+        """Test that GitRepositoryService exists"""
+        self.assertIsNotNone(GitRepositoryService)
 
 
 class GitRepositoryIntegrationTest(TestCase):

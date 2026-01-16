@@ -2,7 +2,8 @@ import pytest
 from documents.models import Document, Page, Section
 from accounts.models import Organisation
 from repositories.models import GitRepository
-from documents.builder.jsx_builder import DjangoJsxOutputImplementation, build_sphinxdocs
+from documents.builder.jsx_builder import DjangoJsxOutputImplementation
+from documents.tasks import build_sphinxdocs
 import tempfile
 import os
 import shutil
@@ -279,10 +280,10 @@ This is a test documentation.
     
     def test_build_sphinxdocs_document_not_found(self):
         """Test build_sphinxdocs with non-existent document"""
-        with patch('documents.builder.jsx_builder.Document.objects.get') as mock_get:
+        with patch('documents.tasks.Document.objects.get') as mock_get:
             mock_get.side_effect = Exception("Document not found")
             
-            with patch('documents.builder.jsx_builder.logging') as mock_logging:
+            with patch('documents.tasks.logging') as mock_logging:
                 # The task should handle the exception
                 try:
                     result = build_sphinxdocs(99999)
@@ -295,18 +296,18 @@ This is a test documentation.
         org = Organisation.objects.create(name="Test Org 2", slug="test-org-2")
         
         # Create document without source repo (will fail on FK constraint)
-        # Instead, test by mocking
-        with patch('documents.builder.jsx_builder.Document.objects.get') as mock_get:
+        # instead, test by mocking
+        with patch('documents.tasks.Document.objects.get') as mock_get:
             mock_doc = MagicMock()
             mock_doc.source = None
             mock_doc.pk = 1
             mock_get.return_value = mock_doc
             
-            with patch('documents.builder.jsx_builder.logging'):
+            with patch('documents.tasks.logging'):
                 result = build_sphinxdocs(1)
                 
-                # Should return None when repo is missing
-                assert result is None
+                # Should return False when repo is missing
+                assert result is False
 
     def test_build_sphinxdocs_conf_path_handling(self, sphinx_repo_and_doc):
         """Test that build_sphinxdocs correctly resolves conf_path relative to checkout"""
@@ -317,7 +318,7 @@ This is a test documentation.
         document.conf_path = "." 
         document.save()
         
-        with patch('documents.builder.jsx_builder.Sphinx') as MockSphinx:
+        with patch('documents.tasks.Sphinx') as MockSphinx:
              # Mock the build method
             MockSphinx.return_value.build.return_value = None
             
@@ -345,11 +346,11 @@ This is a test documentation.
         """Test that build_sphinxdocs handles exceptions gracefully"""
         document, temp_dir = sphinx_repo_and_doc
         
-        with patch('documents.builder.jsx_builder.Sphinx') as mock_sphinx:
+        with patch('documents.tasks.Sphinx') as mock_sphinx:
             # Mock Sphinx to raise an exception
             mock_sphinx.side_effect = Exception("Sphinx build failed")
             
-            with patch('documents.builder.jsx_builder.logger') as mock_logger:
+            with patch('documents.tasks.logger') as mock_logger:
                 result = build_sphinxdocs(document.pk)
                 
                 # Should return False on exception

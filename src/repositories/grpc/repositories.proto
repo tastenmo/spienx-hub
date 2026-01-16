@@ -4,7 +4,7 @@ package config.repositories;
 
 import "google/protobuf/empty.proto";
 
-service GitMirrorRepositoryAdminController {
+service GitMirrorRepositoryController {
     rpc Create(GitMirrorRepositoryRequest) returns (GitMirrorRepositoryResponse) {}
     rpc Destroy(GitMirrorRepositoryDestroyRequest) returns (google.protobuf.Empty) {}
     rpc List(GitMirrorRepositoryListRequest) returns (GitMirrorRepositoryListResponse) {}
@@ -13,16 +13,7 @@ service GitMirrorRepositoryAdminController {
     rpc Update(GitMirrorRepositoryRequest) returns (GitMirrorRepositoryResponse) {}
 }
 
-service GitMirrorRepositoryMirroringController {
-    rpc CreateMirror(GitMirrorRepositoryMirroringCreateMirrorRequest) returns (GitMirrorRepositoryMirroringCreateMirrorResponse) {}
-}
-
-service GitMirrorRepositoryReadController {
-    rpc List(GitMirrorRepositoryListRequest) returns (GitMirrorRepositoryListResponse) {}
-    rpc Retrieve(GitMirrorRepositoryRetrieveRequest) returns (GitMirrorRepositoryResponse) {}
-}
-
-service GitRepositoryAdminController {
+service GitRepositoryController {
     rpc Create(GitRepositoryRequest) returns (GitRepositoryResponse) {}
     rpc Destroy(GitRepositoryDestroyRequest) returns (google.protobuf.Empty) {}
     rpc List(GitRepositoryListRequest) returns (GitRepositoryListResponse) {}
@@ -31,34 +22,18 @@ service GitRepositoryAdminController {
     rpc Update(GitRepositoryRequest) returns (GitRepositoryResponse) {}
 }
 
-service GitRepositoryCreationController {
-    rpc Create(GitRepositoryCreationCreateRequest) returns (GitRepositoryCreationCreateResponse) {}
+service MirrorRepositoryController {
+    rpc CreateMirror(MirrorRepositoryCreateMirrorRequest) returns (MirrorRepositoryCreateMirrorResponse) {}
+    rpc SyncNow(MirrorRepositorySyncNowRequest) returns (MirrorRepositorySyncNowResponse) {}
 }
 
-service GitRepositoryMigrationController {
-    rpc Migrate(GitRepositoryMigrationMigrateRequest) returns (GitRepositoryMigrationMigrateResponse) {}
-    rpc MigrateFromExternal(GitRepositoryMigrationMigrateFromExternalRequest) returns (GitRepositoryMigrationMigrateFromExternalResponse) {}
+service RepositoryCreationController {
+    rpc Create(RepositoryCreationCreateRequest) returns (RepositoryCreationCreateResponse) {}
+    rpc Migrate(RepositoryCreationMigrateRequest) returns (RepositoryCreationMigrateResponse) {}
+    rpc MigrateFromExternal(RepositoryCreationMigrateFromExternalRequest) returns (RepositoryCreationMigrateFromExternalResponse) {}
 }
 
-service GitRepositoryReadController {
-    rpc List(GitRepositoryListRequest) returns (GitRepositoryListResponse) {}
-    rpc Retrieve(GitRepositoryRetrieveRequest) returns (GitRepositoryResponse) {}
-}
-
-service GitRepositorySyncController {
-    rpc SyncNow(GitRepositorySyncSyncNowRequest) returns (GitRepositorySyncSyncNowResponse) {}
-}
-
-service SyncTaskAdminController {
-    rpc Create(SyncTaskRequest) returns (SyncTaskResponse) {}
-    rpc Destroy(SyncTaskDestroyRequest) returns (google.protobuf.Empty) {}
-    rpc List(SyncTaskListRequest) returns (SyncTaskListResponse) {}
-    rpc PartialUpdate(SyncTaskPartialUpdateRequest) returns (SyncTaskResponse) {}
-    rpc Retrieve(SyncTaskRetrieveRequest) returns (SyncTaskResponse) {}
-    rpc Update(SyncTaskRequest) returns (SyncTaskResponse) {}
-}
-
-service SyncTaskReadController {
+service SyncTaskController {
     rpc List(SyncTaskListRequest) returns (SyncTaskListResponse) {}
     rpc Retrieve(SyncTaskRetrieveRequest) returns (SyncTaskResponse) {}
 }
@@ -77,22 +52,6 @@ message GitMirrorRepositoryListRequest {
 
 message GitMirrorRepositoryListResponse {
     repeated GitMirrorRepositoryResponse results = 1;
-}
-
-message GitMirrorRepositoryMirroringCreateMirrorRequest {
-    string name = 1;
-    int64 organisation_id = 2;
-    string source_url = 3;
-    string source_type = 4;
-    string description = 5;
-    bool auto_sync = 6;
-    int32 sync_interval = 7;
-}
-
-message GitMirrorRepositoryMirroringCreateMirrorResponse {
-    int64 id = 1;
-    string status = 2;
-    string local_path = 3;
 }
 
 message GitMirrorRepositoryPartialUpdateRequest {
@@ -151,19 +110,6 @@ message GitMirrorRepositoryRetrieveRequest {
     int64 id = 1;
 }
 
-message GitRepositoryCreationCreateRequest {
-    string name = 1;
-    int64 organisation_id = 2;
-    string description = 3;
-    bool is_public = 4;
-}
-
-message GitRepositoryCreationCreateResponse {
-    int64 id = 1;
-    string local_path = 2;
-    string git_url = 3;
-}
-
 message GitRepositoryDestroyRequest {
     int64 id = 1;
 }
@@ -173,30 +119,6 @@ message GitRepositoryListRequest {
 
 message GitRepositoryListResponse {
     repeated GitRepositoryResponse results = 1;
-}
-
-message GitRepositoryMigrationMigrateFromExternalRequest {
-    string name = 1;
-    int64 organisation_id = 2;
-    string source_url = 3;
-    string description = 4;
-}
-
-message GitRepositoryMigrationMigrateFromExternalResponse {
-    bool success = 1;
-    string local_path = 2;
-    string message = 3;
-}
-
-message GitRepositoryMigrationMigrateRequest {
-    int64 repository_id = 1;
-    int64 new_organisation_id = 2;
-}
-
-message GitRepositoryMigrationMigrateResponse {
-    bool success = 1;
-    string new_local_path = 2;
-    string message = 3;
 }
 
 message GitRepositoryPartialUpdateRequest {
@@ -238,17 +160,66 @@ message GitRepositoryRetrieveRequest {
     int64 id = 1;
 }
 
-message GitRepositorySyncSyncNowRequest {
+message MirrorRepositoryCreateMirrorRequest {
+    string name = 1;
+    int64 organisation_id = 2;
+    string source_url = 3;
+    string source_type = 4;
+    string description = 5;
+    bool auto_sync = 6;
+    int32 sync_interval = 7;
+}
+
+message MirrorRepositoryCreateMirrorResponse {
+    int64 id = 1;
+    string status = 2;
+    string local_path = 3;
+}
+
+message MirrorRepositorySyncNowRequest {
     int64 mirror_id = 1;
 }
 
-message GitRepositorySyncSyncNowResponse {
+message MirrorRepositorySyncNowResponse {
     int64 task_id = 1;
     string status = 2;
 }
 
-message SyncTaskDestroyRequest {
+message RepositoryCreationCreateRequest {
+    string name = 1;
+    int64 organisation_id = 2;
+    string description = 3;
+    bool is_public = 4;
+}
+
+message RepositoryCreationCreateResponse {
     int64 id = 1;
+    string local_path = 2;
+    string git_url = 3;
+}
+
+message RepositoryCreationMigrateFromExternalRequest {
+    string name = 1;
+    int64 organisation_id = 2;
+    string source_url = 3;
+    string description = 4;
+}
+
+message RepositoryCreationMigrateFromExternalResponse {
+    bool success = 1;
+    string local_path = 2;
+    string message = 3;
+}
+
+message RepositoryCreationMigrateRequest {
+    int64 repository_id = 1;
+    int64 new_organisation_id = 2;
+}
+
+message RepositoryCreationMigrateResponse {
+    bool success = 1;
+    string new_local_path = 2;
+    string message = 3;
 }
 
 message SyncTaskListRequest {
@@ -256,21 +227,6 @@ message SyncTaskListRequest {
 
 message SyncTaskListResponse {
     repeated SyncTaskResponse results = 1;
-}
-
-message SyncTaskPartialUpdateRequest {
-    optional int64 id = 1;
-    repeated string _partial_update_fields = 2;
-    optional string status = 3;
-    optional string task_id = 4;
-    int64 repository = 5;
-}
-
-message SyncTaskRequest {
-    optional int64 id = 1;
-    optional string status = 2;
-    optional string task_id = 3;
-    int64 repository = 4;
 }
 
 message SyncTaskResponse {

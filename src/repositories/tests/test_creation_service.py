@@ -1,9 +1,9 @@
 from django.test import TestCase
-from repositories.services import GitRepositoryCreationService
+from repositories.services import RepositoryCreationService
 from repositories.grpc import repositories_pb2
 from repositories.grpc.repositories_pb2_grpc import (
-    GitRepositoryCreationControllerStub,
-    add_GitRepositoryCreationControllerServicer_to_server,
+    RepositoryCreationControllerStub,
+    add_RepositoryCreationControllerServicer_to_server,
 )
 from grpc_test_utils.fake_grpc import FakeFullAIOGRPC
 from accounts.models import Organisation
@@ -25,14 +25,14 @@ class TestGitRepositoryCreationService(TestCase):
         )
         
         self.fake_grpc = FakeFullAIOGRPC(
-            add_GitRepositoryCreationControllerServicer_to_server,
-            GitRepositoryCreationService.as_servicer(),
+            add_RepositoryCreationControllerServicer_to_server,
+            RepositoryCreationService.as_servicer(),
         )
 
     def tearDown(self):
         self.fake_grpc.close()
 
-    @patch('repositories.services.RepoPolicyPermission.has_permission', return_value=True)
+    @patch('repositories.services.RepositoryPermission.has_permission', return_value=True)
     @patch('repositories.tasks.git_tasks.GitPythonRepo')
     @patch('repositories.tasks.git_tasks.os.makedirs')
     def test_create_repository(self, mock_makedirs, mock_git_repo, mock_permission):
@@ -45,9 +45,9 @@ class TestGitRepositoryCreationService(TestCase):
                 mock_init_task.delay.return_value = mock_task
                 
                 # Create stub
-                stub = self.fake_grpc.get_fake_stub(GitRepositoryCreationControllerStub)
+                stub = self.fake_grpc.get_fake_stub(RepositoryCreationControllerStub)
                 
-                request = repositories_pb2.GitRepositoryCreationCreateRequest(
+                request = repositories_pb2.RepositoryCreationCreateRequest(
                     name="new-repo",
                     organisation_id=self.org.id,
                     description="A new repo",

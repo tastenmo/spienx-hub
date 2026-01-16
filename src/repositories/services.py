@@ -1,229 +1,93 @@
 import os
+import subprocess
 from django.conf import settings
 from django.db.models import Q
-from django_socio_grpc import generics, proto_serializers
+from django_socio_grpc import generics
 from django_socio_grpc.decorators import grpc_action
 from django_socio_grpc.permissions import GRPCActionBasePermission
 from repositories.models import GitRepository, GitMirrorRepository, SyncTask
 from repositories.grpc import repositories_pb2
-from git import Repo as git_repo
-from accounts.models import Organisation
-from celery import current_app
+from repositories.serializers import (
+    GitRepositorySerializer,
+    GitMirrorRepositorySerializer,
+    SyncTaskSerializer,
+)
+from accounts.models import Organisation, OrganisationMembership, TeamMembership
 import grpc
-from rest_framework import serializers
-from rest_framework.permissions import SAFE_METHODS
 
 
 # ============================================================================
-# SERIALIZERS
+# PERMISSIONS
 # ============================================================================
 
-class GitRepositorySerializer(proto_serializers.ModelProtoSerializer):
-    """Serializer for GitRepository model"""
-    git_url = serializers.SerializerMethodField()
-
-    def get_git_url(self, obj) -> str | None:
-        return getattr(obj, 'git_url', None)
-
-    class Meta:
-        model = GitRepository
-        fields = '__all__'
-        proto_class = repositories_pb2.GitRepositoryResponse
-        proto_class_list = repositories_pb2.GitRepositoryListResponse
-        extra_kwargs = {
-            'local_path': {'read_only': True},
-            'created_at': {'read_only': True},
-            'updated_at': {'read_only': True},
-            'git_url': {'read_only': True},
-        }
-
-
-class GitMirrorRepositorySerializer(proto_serializers.ModelProtoSerializer):
-    """Serializer for GitMirrorRepository model"""
-    class Meta:
-        model = GitMirrorRepository
-        fields = '__all__'
-        proto_class = repositories_pb2.GitRepositoryResponse
-        proto_class_list = repositories_pb2.GitRepositoryListResponse
-        extra_kwargs = {
-            'local_path': {'read_only': True},
-            'last_synced_at': {'read_only': True},
-            'error_message': {'read_only': True},
-            'consecutive_failures': {'read_only': True},
-            'created_at': {'read_only': True},
-            'updated_at': {'read_only': True},
-        }
-
-
-class SyncTaskSerializer(proto_serializers.ModelProtoSerializer):
-    """Serializer for SyncTask model"""
-    class Meta:
-        model = SyncTask
-        fields = '__all__'
-        extra_kwargs = {
-            'started_at': {'read_only': True},
-            'completed_at': {'read_only': True},
-            'error_message': {'read_only': True},
-            'commits_synced': {'read_only': True},
-            'created_at': {'read_only': True},
-        }
-
-
-class RepoPolicyPermission(GRPCActionBasePermission):
-    """Use repo/team/role policies: safe = allow; unsafe = require write/admin on repo."""
-
-    RANK = {'none': 0, 'read': 1, 'write': 2, 'admin': 3}
+class RepositoryPermission(GRPCActionBasePermission):
+    """Permission class for repository operations"""
 
     def has_permission(self, context, service):
-        # Ensure user is authenticated
-        if not context.user or not context.user.is_authenticated:
-            print(f"RepoPolicyPermission: User not authenticated. User: {context.user}")
-            return False
-            
-        # Debug logging
-        action = getattr(service, 'action', 'unknown')
-        print(f"RepoPolicyPermission: user={context.user.username}, superuser={context.user.is_superuser}, method={context.method}, action={action}")
-
-        # Allow safe methods (GET, HEAD, OPTIONS) or safe actions (list, retrieve)
-        safe_actions = ['list', 'retrieve']
-        if context.method in SAFE_METHODS or action in safe_actions:
-            return True
-            
-        return bool(getattr(context.user, 'is_superuser', False))
-
-    def has_object_permission(self, context, service, obj):
-        # Ensure user is authenticated
+        """Check if user has access to list/retrieve"""
         if not context.user or not context.user.is_authenticated:
             return False
 
-        action = getattr(service, 'action', 'unknown')
-        safe_actions = ['list', 'retrieve']
-
-        if context.method in SAFE_METHODS or action in safe_actions:
-            return True
+        # Superusers can do everything
         if getattr(context.user, 'is_superuser', False):
             return True
-        if hasattr(obj, 'effective_permission'):
-            perm = obj.effective_permission(context.user)
-            return self.RANK.get(perm, 0) >= self.RANK['write']
+
+        # Read operations allowed for authenticated users
+        action = getattr(service, 'action', 'unknown')
+        if action in ['list', 'retrieve']:
+            return True
+
+        # Write operations require superuser
+        return False
+
+    def has_object_permission(self, context, service, obj):
+        """Check if user has access to specific object"""
+        if not context.user or not context.user.is_authenticated:
+            return False
+
+        if getattr(context.user, 'is_superuser', False):
+            return True
+
+        action = getattr(service, 'action', 'unknown')
+        if action in ['list', 'retrieve']:
+            return True
+
         return False
 
 
 # ============================================================================
-# ADMINISTRATION SERVICES (AsyncModelService - CRUD)
+# CORE SERVICES (CRUD)
 # ============================================================================
 
-class GitRepositoryAdminService(generics.AsyncModelService):
-    """
-    Administration service for Git Repositories.
-    Provides: List, Retrieve, Create, Update, Delete
-    """
+class GitRepositoryService(generics.AsyncModelService):
+    """Service for Git Repository operations"""
     queryset = GitRepository.objects.all()
     serializer_class = GitRepositorySerializer
-    permission_classes = [RepoPolicyPermission]
+    permission_classes = [RepositoryPermission]
 
 
-class GitMirrorRepositoryAdminService(generics.AsyncModelService):
-    """
-    Administration service for Git Mirror Repositories.
-    Provides: List, Retrieve, Create, Update, Delete
-    """
+class GitMirrorRepositoryService(generics.AsyncModelService):
+    """Service for Git Mirror Repository operations"""
     queryset = GitMirrorRepository.objects.all()
     serializer_class = GitMirrorRepositorySerializer
-    permission_classes = [RepoPolicyPermission]
+    permission_classes = [RepositoryPermission]
 
 
-class SyncTaskAdminService(generics.AsyncModelService):
-    """
-    Administration service for Sync Tasks.
-    Provides: List, Retrieve, Create, Update, Delete
-    """
+class SyncTaskService(generics.AsyncReadOnlyModelService):
+    """Service for Sync Task operations (read-only)"""
     queryset = SyncTask.objects.all()
     serializer_class = SyncTaskSerializer
-    permission_classes = [RepoPolicyPermission]
+    permission_classes = [RepositoryPermission]
 
-
-# ============================================================================
-# USAGE SERVICES (AsyncReadOnlyModelService - Read-only)
-# ============================================================================
-
-class GitRepositoryReadService(generics.AsyncReadOnlyModelService):
-    """
-    Read-only service for Git Repositories.
-    Provides: List, Retrieve
-    """
-    queryset = GitRepository.objects.all()
-    serializer_class = GitRepositorySerializer
-    permission_classes = [RepoPolicyPermission]
-
-
-class GitMirrorRepositoryReadService(generics.AsyncReadOnlyModelService):
-    """
-    Read-only service for Git Mirror Repositories.
-    Provides: List, Retrieve
-    """
-    queryset = GitMirrorRepository.objects.all()
-    serializer_class = GitMirrorRepositorySerializer
-    permission_classes = [RepoPolicyPermission]
-
-    def get_queryset(self):
-        # Called during service registration without context
-        # Filter at request time via has_object_permission instead
-        return super().get_queryset()
-    
-    async def list(self, request, context=None):
-        # Override list to apply user-based filtering
-        qs = super().get_queryset()
-        user = getattr(request, 'user', None)
-
-        if not user or not getattr(user, 'is_authenticated', False):
-            qs = qs.filter(is_public=True)
-        elif not getattr(user, 'is_superuser', False):
-            from accounts.models import OrganisationMembership, TeamMembership
-
-            org_ids = OrganisationMembership.objects.filter(
-                user=user,
-                is_active=True,
-            ).exclude(role='none').values_list('organisation_id', flat=True)
-
-            member_roles = OrganisationMembership.objects.filter(
-                user=user,
-                is_active=True,
-            ).exclude(role='none').values_list('role', flat=True)
-
-            team_ids = TeamMembership.objects.filter(
-                user=user,
-                is_active=True,
-                team__is_active=True,
-            ).values_list('team_id', flat=True)
-
-            qs = qs.filter(
-                Q(is_public=True)
-                | Q(organisation_id__in=org_ids)
-                | Q(access_policies__team_id__in=team_ids)
-                | Q(access_policies__role__in=member_roles)
-            ).distinct()
-        
-        return qs
-
-
-class SyncTaskReadService(generics.AsyncReadOnlyModelService):
-    """
-    Read-only service for Sync Tasks.
-    Provides: List, Retrieve
-    """
-    queryset = SyncTask.objects.all()
-    serializer_class = SyncTaskSerializer
-    permission_classes = [RepoPolicyPermission]
 
 
 # ============================================================================
 # SPECIALIZED SERVICES
 # ============================================================================
 
-class GitRepositoryCreationService(generics.GenericService):
-    """Service for creating bare Git repositories"""
-    permission_classes = [RepoPolicyPermission]
+class RepositoryCreationService(generics.GenericService):
+    """Service for creating and managing Git repositories"""
+    permission_classes = [RepositoryPermission]
 
     @grpc_action(
         request=[
@@ -242,11 +106,11 @@ class GitRepositoryCreationService(generics.GenericService):
         """Create a new bare Git repository"""
         base_dir = getattr(settings, 'GIT_REPOS_DIR', os.path.join(settings.BASE_DIR, 'repos'))
         organisation = await Organisation.objects.aget(id=request.organisation_id)
-        
+
         # Sanitize repository name
         safe_name = "".join([c for c in request.name if c.isalnum() or c in ('-', '_')])
         local_path = os.path.join(base_dir, str(organisation.id), safe_name)
-        
+
         # Create repository record
         repository = GitRepository(
             name=request.name,
@@ -257,76 +121,16 @@ class GitRepositoryCreationService(generics.GenericService):
             is_public=request.is_public,
         )
         await repository.asave()
-        
+
         # Dispatch initialization task to Celery
         from repositories.tasks import initialize_repository
-        task = initialize_repository.delay(repository.id)
-        
-        return repositories_pb2.GitRepositoryCreationCreateResponse(
+        initialize_repository.delay(repository.id)
+
+        return repositories_pb2.RepositoryCreationCreateResponse(
             id=repository.id,
             local_path=repository.local_path,
             git_url=repository.git_url,
         )
-
-
-class GitMirrorRepositoryMirroringService(generics.GenericService):
-    """Service for managing mirror repositories"""
-    permission_classes = [RepoPolicyPermission]
-
-    @grpc_action(
-        request=[
-            {"name": "name", "type": "string"},
-            {"name": "organisation_id", "type": "int64"},
-            {"name": "source_url", "type": "string"},
-            {"name": "source_type", "type": "string"},
-            {"name": "description", "type": "string"},
-            {"name": "auto_sync", "type": "bool"},
-            {"name": "sync_interval", "type": "int32"},
-        ],
-        response=[
-            {"name": "id", "type": "int64"},
-            {"name": "status", "type": "string"},
-            {"name": "local_path", "type": "string"},
-        ],
-    )
-    async def CreateMirror(self, request, context):
-        """Create a new mirror repository from external source"""
-        base_dir = getattr(settings, 'GIT_REPOS_DIR', os.path.join(settings.BASE_DIR, 'repos'))
-        organisation = await Organisation.objects.aget(id=request.organisation_id)
-        
-        # Sanitize repository name
-        safe_name = "".join([c for c in request.name if c.isalnum() or c in ('-', '_')])
-        local_path = os.path.join(base_dir, str(organisation.id), safe_name)
-        
-        # Create mirror repository record
-        mirror = GitMirrorRepository(
-            name=request.name,
-            organisation=organisation,
-            source_url=request.source_url,
-            source_type=request.source_type,
-            description=request.description,
-            local_path=local_path,
-            is_bare=True,
-            auto_sync=request.auto_sync,
-            sync_interval=request.sync_interval,
-            status='initializing',
-        )
-        await mirror.asave()
-        
-        # Dispatch mirror cloning task to Celery
-        from repositories.tasks import clone_mirror_repository
-        task = clone_mirror_repository.delay(mirror.id)
-        
-        return repositories_pb2.GitMirrorRepositoryMirroringCreateMirrorResponse(
-            id=mirror.id,
-            status=mirror.status,
-            local_path=mirror.local_path,
-        )
-
-
-class GitRepositoryMigrationService(generics.GenericService):
-    """Service for migrating repositories"""
-    permission_classes = [RepoPolicyPermission]
 
     @grpc_action(
         request=[
@@ -344,21 +148,21 @@ class GitRepositoryMigrationService(generics.GenericService):
         try:
             repository = await GitRepository.objects.aget(id=request.repository_id)
             new_organisation = await Organisation.objects.aget(id=request.new_organisation_id)
-            
+
             base_dir = getattr(settings, 'GIT_REPOS_DIR', os.path.join(settings.BASE_DIR, 'repos'))
             safe_name = "".join([c for c in repository.name if c.isalnum() or c in ('-', '_')])
             new_local_path = os.path.join(base_dir, str(new_organisation.id), safe_name)
-            
+
             # Move repository on filesystem
             if os.path.exists(repository.local_path):
                 os.makedirs(os.path.dirname(new_local_path), exist_ok=True)
                 os.rename(repository.local_path, new_local_path)
-            
+
             # Update repository record
             repository.organisation = new_organisation
             repository.local_path = new_local_path
             await repository.asave()
-            
+
             return repositories_pb2.GitRepositoryMigrationResponse(
                 success=True,
                 new_local_path=new_local_path,
@@ -385,33 +189,30 @@ class GitRepositoryMigrationService(generics.GenericService):
         ],
     )
     async def MigrateFromExternal(self, request, context):
-        """Migrate (clone --bare) a repository from an external git server"""
+        """Clone a repository from an external git server"""
         try:
             organisation = await Organisation.objects.aget(id=request.organisation_id)
-            
+
             base_dir = getattr(settings, 'GIT_REPOS_DIR', os.path.join(settings.BASE_DIR, 'repos'))
             safe_name = "".join([c for c in request.name if c.isalnum() or c in ('-', '_')])
             local_path = os.path.join(base_dir, str(organisation.id), safe_name)
-            
-            # Create directories
+
+            # Create directories and clone
             os.makedirs(os.path.dirname(local_path), exist_ok=True)
-            
-            # Clone as bare repository
-            import subprocess
             result = subprocess.run(
                 ['git', 'clone', '--bare', request.source_url, local_path],
                 capture_output=True,
                 text=True,
                 timeout=300
             )
-            
+
             if result.returncode != 0:
                 return repositories_pb2.GitRepositoryMigrationMigrateFromExternalResponse(
                     success=False,
                     local_path="",
                     message=f"Clone failed: {result.stderr}",
                 )
-            
+
             # Create repository record
             repository = await GitRepository.objects.acreate(
                 name=request.name,
@@ -421,11 +222,11 @@ class GitRepositoryMigrationService(generics.GenericService):
                 is_bare=True,
                 is_public=True,
             )
-            
+
             return repositories_pb2.GitRepositoryMigrationMigrateFromExternalResponse(
                 success=True,
                 local_path=local_path,
-                message=f"Repository cloned from external source",
+                message="Repository cloned from external source",
             )
         except Exception as e:
             return repositories_pb2.GitRepositoryMigrationMigrateFromExternalResponse(
@@ -435,9 +236,59 @@ class GitRepositoryMigrationService(generics.GenericService):
             )
 
 
-class GitRepositorySyncService(generics.GenericService):
-    """Service for syncing mirror repositories"""
-    permission_classes = [RepoPolicyPermission]
+class MirrorRepositoryService(generics.GenericService):
+    """Service for managing mirror repositories"""
+    permission_classes = [RepositoryPermission]
+
+    @grpc_action(
+        request=[
+            {"name": "name", "type": "string"},
+            {"name": "organisation_id", "type": "int64"},
+            {"name": "source_url", "type": "string"},
+            {"name": "source_type", "type": "string"},
+            {"name": "description", "type": "string"},
+            {"name": "auto_sync", "type": "bool"},
+            {"name": "sync_interval", "type": "int32"},
+        ],
+        response=[
+            {"name": "id", "type": "int64"},
+            {"name": "status", "type": "string"},
+            {"name": "local_path", "type": "string"},
+        ],
+    )
+    async def CreateMirror(self, request, context):
+        """Create a new mirror repository from external source"""
+        base_dir = getattr(settings, 'GIT_REPOS_DIR', os.path.join(settings.BASE_DIR, 'repos'))
+        organisation = await Organisation.objects.aget(id=request.organisation_id)
+
+        # Sanitize repository name
+        safe_name = "".join([c for c in request.name if c.isalnum() or c in ('-', '_')])
+        local_path = os.path.join(base_dir, str(organisation.id), safe_name)
+
+        # Create mirror repository record
+        mirror = GitMirrorRepository(
+            name=request.name,
+            organisation=organisation,
+            source_url=request.source_url,
+            source_type=request.source_type,
+            description=request.description,
+            local_path=local_path,
+            is_bare=True,
+            auto_sync=request.auto_sync,
+            sync_interval=request.sync_interval,
+            status='initializing',
+        )
+        await mirror.asave()
+
+        # Dispatch mirror cloning task to Celery
+        from repositories.tasks import clone_mirror_repository
+        clone_mirror_repository.delay(mirror.id)
+
+        return repositories_pb2.GitMirrorRepositoryMirroringCreateMirrorResponse(
+            id=mirror.id,
+            status=mirror.status,
+            local_path=mirror.local_path,
+        )
 
     @grpc_action(
         request=[
@@ -452,34 +303,31 @@ class GitRepositorySyncService(generics.GenericService):
         """Trigger an immediate sync for a mirror repository"""
         try:
             mirror = await GitMirrorRepository.objects.aget(id=request.mirror_id)
-            
+
             # Create sync task
             sync_task = SyncTask(
                 repository=mirror,
                 status='pending',
             )
             await sync_task.asave()
-            
+
             # Dispatch sync task to Celery
             from repositories.tasks import sync_mirror_repository
             task = sync_mirror_repository.delay(mirror.id, sync_task.id)
             sync_task.task_id = task.id
             await sync_task.asave()
-            
+
             return repositories_pb2.GitRepositorySyncResponse(
                 task_id=sync_task.id,
                 status=sync_task.status,
             )
         except GitMirrorRepository.DoesNotExist:
-            return repositories_pb2.GitRepositorySyncResponse(
-                task_id=0,
-                status='failed',
-            )
+            context.abort(grpc.StatusCode.NOT_FOUND, f"Mirror {request.mirror_id} not found")
 
 
 class TaskStatusService(generics.GenericService):
     """Service for monitoring task progress"""
-    permission_classes = [RepoPolicyPermission]
+    permission_classes = [RepositoryPermission]
 
     @grpc_action(
         request=[
@@ -499,7 +347,7 @@ class TaskStatusService(generics.GenericService):
         """Get the status of a sync task"""
         try:
             sync_task = await SyncTask.objects.aget(id=request.task_id)
-            
+
             return repositories_pb2.TaskStatusResponse(
                 id=sync_task.id,
                 status=sync_task.status,
@@ -511,7 +359,7 @@ class TaskStatusService(generics.GenericService):
             )
         except SyncTask.DoesNotExist:
             context.abort(grpc.StatusCode.NOT_FOUND, f"Task {request.task_id} not found")
-    
+
     @grpc_action(
         request=[
             {"name": "repository_id", "type": "int64"},
@@ -524,12 +372,12 @@ class TaskStatusService(generics.GenericService):
         """Get all sync tasks for a repository"""
         try:
             repository = await GitRepository.objects.aget(id=request.repository_id)
-            
             task_count = await SyncTask.objects.filter(repository=repository).acount()
-            
+
             return repositories_pb2.RepositoryTasksResponse(task_count=task_count)
         except GitRepository.DoesNotExist:
             context.abort(grpc.StatusCode.NOT_FOUND, f"Repository {request.repository_id} not found")
+
 
 
 

@@ -12,10 +12,14 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 import os
 from pathlib import Path
-from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+# Load environment variables from .env file (optional, for development)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    # dotenv is optional; skip if not available (e.g., during testing)
+    pass
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -48,7 +52,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders',
     'django_socio_grpc',
     'rest_framework',
     'rest_framework.authtoken',
@@ -65,7 +68,6 @@ MIDDLEWARE = [
     'core.middleware.HeaderDebugMiddleware',
     'core.middleware.AllowNullOriginMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -103,10 +105,19 @@ ASGI_APPLICATION = 'config.asgi.application'
 DATABASE_URL = os.getenv('DATABASE_URL', None)
 
 if DATABASE_URL:
-    import dj_database_url
-    DATABASES = {
-        'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
-    }
+    try:
+        import dj_database_url
+        DATABASES = {
+            'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
+        }
+    except ImportError:
+        # dj_database_url is optional; fall back to sqlite3 if not available
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
 else:
     DATABASES = {
         'default': {
@@ -197,28 +208,36 @@ GRPC_FRAMEWORK = {
     ],
 }
 
-# CORS configuration
-from corsheaders.defaults import default_headers
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "https://hub.tastenmo.de",
-]
-
-CORS_ALLOW_CREDENTIALS = True
-
-CORS_ALLOW_HEADERS = list(default_headers) + [
-    'x-grpc-web',
-    'grpc-timeout',
-    'x-csrftoken',
-]
-
-CORS_EXPOSE_HEADERS = [
-    'grpc-status',
-    'grpc-message',
-    'grpc-status-details-bin',
-]
+# CORS configuration (optional, for development)
+try:
+    from corsheaders.defaults import default_headers
+    
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "https://hub.tastenmo.de",
+    ]
+    
+    CORS_ALLOW_CREDENTIALS = True
+    
+    CORS_ALLOW_HEADERS = list(default_headers) + [
+        'x-grpc-web',
+        'grpc-timeout',
+        'x-csrftoken',
+    ]
+    
+    CORS_EXPOSE_HEADERS = [
+        'grpc-status',
+        'grpc-message',
+        'grpc-status-details-bin',
+    ]
+    
+    # Add corsheaders to installed apps and middleware if available
+    INSTALLED_APPS.append('corsheaders')
+    MIDDLEWARE.insert(3, 'corsheaders.middleware.CorsMiddleware')
+except ImportError:
+    # corsheaders is optional; skip if not available (e.g., during testing)
+    pass
 
 # Git repository settings
 GIT_DOMAIN = os.getenv('GIT_DOMAIN', 'hub.tastenmo.de')

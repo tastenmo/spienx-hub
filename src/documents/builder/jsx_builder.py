@@ -2,18 +2,13 @@ from __future__ import annotations
 
 import os
 import types
-import shutil
 from os import path
 from typing import TYPE_CHECKING, Any
-from tempfile import mkdtemp
 
 import logging
 
 logger = logging.getLogger(__name__)
 
-from celery import shared_task
-
-from sphinx.config import Config
 from sphinx.application import Sphinx
 from sphinx.builders.html import BuildInfo
 from jsx_builder.builders import JSXBuilder, JsxOutputImplementation
@@ -138,74 +133,6 @@ def setup(app: Sphinx) -> dict[str, Any]:
         'parallel_write_safe': True,
     }
 
-@shared_task()
-def build_sphinxdocs(document_id: int):
-    logging.debug("Starting Sphinx build for Document version ID: %s", document_id)
-
-    doc = Document.objects.get(pk=document_id)
-    if not doc:
-        logging.error("Document with ID %s not found.", document_id)
-        return
-    
-    source_repo = doc.source
-    if not source_repo:
-        logging.error("Document with ID %s has no associated source repository.", document_id)
-        return
-    
-    src_path = mkdtemp()
-    
-    try:
-        repo = source_repo.create_workdir(path=src_path, reference=(doc.reference if doc.reference else "HEAD"))
-        working_dir = repo.working_dir
-
-        build_dir = path.join(src_path, "_build", "djangojsx")
-        os.makedirs(build_dir, exist_ok=True)
-        # conf_dir = path.join(src_path, "docs") # Removed unused variable
-
-        try:
-            logger.info(f"Docs version: {doc}")
-            
-            # Resolve confdir relative to the repo working directory
-            confdir = path.join(working_dir, doc.conf_path)
-            logger.info(f"Conf dir: {confdir}")
-            
-            if not os.path.exists(confdir):
-                logger.error(f"Configuration directory does not exist: {confdir}")
-                return False
-
-            config = Config.read(confdir, {})
-
-            extensions = config['extensions']
-            # Register this module as an extension
-            extensions.append('documents.builder.jsx_builder')
-
-            app = Sphinx(
-                srcdir=confdir,
-                confdir=confdir,
-                outdir=build_dir,
-                doctreedir=os.path.join(src_path, '_doctrees'), # Place doctrees in temp dir too
-                buildername='djangojsx',
-                confoverrides={'extensions': extensions, 'django': {'docId': doc.pk}},
-                keep_going=True,  # Continue processing even if there are errors in RST files
-            )
-
-            app.build()
-        
-        except Exception as e:
-            logger.error(f"Error building docs for {doc.pk}: {e}")
-            return False
-            
-    finally:
-        # Cleanup temp directory and worktree
-        try:
-            # If src_path exists, remove it. 
-            # If it was a worktree, naive rmtree is okay - subsequent 'git worktree prune' on bare repo will clean up.
-            if os.path.exists(src_path):
-                shutil.rmtree(src_path)
-        except Exception as e:
-            logger.warning(f"Failed to cleanup temp directory {src_path}: {e}")
-    
-    return True
 
 
 
