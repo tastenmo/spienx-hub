@@ -57,7 +57,7 @@ class GitRepository(models.Model):
     def git_url(self):
         """Returns the Git clone URL for this repository"""
         domain = settings.GIT_DOMAIN
-        return f"https://{domain}/git/{self.organisation.slug}/{self.name}.git"
+        return f"https://{domain}/git/{self.organisation.name}/{self.name}.git"
 
     def effective_permission(self, user) -> str:
         """Compute highest permission (none/read/write/admin) for a given user on this repo."""

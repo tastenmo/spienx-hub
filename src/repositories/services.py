@@ -1,5 +1,6 @@
 import os
 import subprocess
+from types import SimpleNamespace
 from django.conf import settings
 from django.db.models import Q
 from django_socio_grpc import generics
@@ -111,6 +112,9 @@ class GitRepositoryService(generics.AsyncModelService):
         content_handler = repo.get_content_handler()
         entries = await sync_to_async(content_handler.list_directory)(sub_path, reference=ref)
 
+        directories = [entry.path for entry in entries if entry.type == 'tree']
+        files = [entry.path for entry in entries if entry.type == 'blob']
+
         results = []
         for entry in entries:
              results.append({
@@ -123,7 +127,16 @@ class GitRepositoryService(generics.AsyncModelService):
              })
 
         serializer = RepositoryTreeEntrySerializer(results, many=True)
-        return serializer.message
+        message = serializer.message
+
+        if context is None:
+            return SimpleNamespace(
+                directories="\n".join(directories),
+                files="\n".join(files),
+                results=message.results,
+            )
+
+        return message
 
 
 class GitMirrorRepositoryService(generics.AsyncModelService):
