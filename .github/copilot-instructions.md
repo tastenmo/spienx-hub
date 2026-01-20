@@ -23,6 +23,11 @@ You are an expert Python developer. Adhere strictly to the following project rul
 - **API architecture:** use **gRPC only** for inter-service communication. Do not suggest REST or HTTP-based solutions.
 - **Tools:** Exclusively use 'django-socio-grpc' for gRPC integration and use the commands provided by this package for generating proto files and stubs.
 
-## 5. Constraint Awareness
+## 5. Proto workflow
+- Never hand-edit generated proto or stub files. Use the provided workflow instead.
+- Generate/refresh protos with `poetry run python manage.py generateproto` (or `./manage.sh generateproto`) from `src/`.
+- If a proto change is needed, adjust the service/serializer code, then regenerate; do not edit `.proto`/`_pb2.py`/`_pb2_grpc.py` directly.
+
+## 6. Constraint Awareness
 - Before generating code or suggesting commands, check `pyproject.toml` to verify installed versions and Python constraints.
 - If you are unsure about the local environment setup, ask for clarification instead of defaulting to standard Python workflows.
