@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@wooorm/starry-night": "^3.8.0",
+    "hast-util-to-jsx-runtime": "^2.3.6",
+    "html-react-parser": "^5.2.11",
+    "react-jsx-parser": "^2.4.1"
+  }
+}

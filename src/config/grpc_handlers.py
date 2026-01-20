@@ -10,7 +10,10 @@ from repositories.services import (
     MirrorRepositoryService,
     TaskStatusService,
 )
-from documents.services import DocumentReadService
+from documents.services import (
+    BuildReadService,
+    DocumentService,
+)
 
 
 def grpc_handlers(server):
@@ -33,4 +36,5 @@ def grpc_handlers(server):
 
     # Register documents app services
     doc_registry = AppHandlerRegistry('documents', server)
-    doc_registry.register(DocumentReadService, service_file_path='documents.grpc')
+    doc_registry.register(BuildReadService, service_file_path='documents.grpc')
+    doc_registry.register(DocumentService, service_file_path='documents.grpc')

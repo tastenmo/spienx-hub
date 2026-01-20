@@ -1,8 +1,10 @@
 from django.urls import path
-from .views import DocumentListCreateView, DocumentDetailView
+from .views import DocumentListCreateView, DocumentDetailView, BuildListCreateView, BuildDetailView
 
 
 urlpatterns = [
-    path('', DocumentListCreateView.as_view(), name='document-list-create'),
-    path('<int:pk>/', DocumentDetailView.as_view(), name='document-detail'),
+    path('documents/', DocumentListCreateView.as_view(), name='document-list-create'),
+    path('documents/<int:pk>/', DocumentDetailView.as_view(), name='document-detail'),
+    path('builds/', BuildListCreateView.as_view(), name='build-list-create'),
+    path('builds/<int:pk>/', BuildDetailView.as_view(), name='build-detail'),
 ]

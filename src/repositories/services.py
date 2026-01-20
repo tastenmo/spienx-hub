@@ -4,6 +4,7 @@ from django.conf import settings
 from django.db.models import Q
 from django_socio_grpc import generics
 from django_socio_grpc.decorators import grpc_action
+from django_socio_grpc.protobuf.generation_plugin import ListGenerationPlugin
 from django_socio_grpc.permissions import GRPCActionBasePermission
 from repositories.models import GitRepository, GitMirrorRepository, SyncTask
 from repositories.grpc import repositories_pb2
@@ -11,7 +12,9 @@ from repositories.serializers import (
     GitRepositorySerializer,
     GitMirrorRepositorySerializer,
     SyncTaskSerializer,
+    RepositoryTreeEntrySerializer,
 )
+from asgiref.sync import sync_to_async
 from accounts.models import Organisation, OrganisationMembership, TeamMembership
 import grpc
 
@@ -65,6 +68,63 @@ class GitRepositoryService(generics.AsyncModelService):
     serializer_class = GitRepositorySerializer
     permission_classes = [RepositoryPermission]
 
+    @grpc_action(
+        request=[
+            {"name": "repository_id", "type": "int64"},
+        ],
+        response=[
+            {"name": "branches", "type": "string"},
+            {"name": "tags", "type": "string"},
+        ],
+    )
+    async def ListRefs(self, request, context):
+        """List branches and tags for a repository."""
+        repo = await GitRepository.objects.aget(id=request.repository_id)
+        refs_handler = repo.get_refs_handler()
+
+        branches = await sync_to_async(refs_handler.list_branches)()
+        tags = await sync_to_async(refs_handler.list_tags)()
+
+        branch_names = [ref.name for ref in branches]
+        tag_names = [ref.name for ref in tags]
+
+        return repositories_pb2.GitRepositoryListRefsResponse(
+            branches="\n".join(branch_names),
+            tags="\n".join(tag_names),
+        )
+
+    @grpc_action(
+        request=[
+            {"name": "repository_id", "type": "int64"},
+            {"name": "reference", "type": "string"},
+            {"name": "path", "type": "string"},
+        ],
+        response=RepositoryTreeEntrySerializer,
+        use_generation_plugins=[ListGenerationPlugin(response=True)],
+    )
+    async def ListTree(self, request, context):
+        """List directories and files at a path within a repository reference."""
+        repo = await GitRepository.objects.aget(id=request.repository_id)
+        ref = request.reference or "HEAD"
+        sub_path = request.path or ""
+
+        content_handler = repo.get_content_handler()
+        entries = await sync_to_async(content_handler.list_directory)(sub_path, reference=ref)
+
+        results = []
+        for entry in entries:
+             results.append({
+                 "name": entry.name,
+                 "type": entry.type,
+                 "path": entry.path,
+                 "size": entry.size,
+                 "mode": entry.mode,
+                 "sha": entry.sha,
+             })
+
+        serializer = RepositoryTreeEntrySerializer(results, many=True)
+        return serializer.message
+
 
 class GitMirrorRepositoryService(generics.AsyncModelService):
     """Service for Git Mirror Repository operations"""
@@ -109,7 +169,8 @@ class RepositoryCreationService(generics.GenericService):
 
         # Sanitize repository name
         safe_name = "".join([c for c in request.name if c.isalnum() or c in ('-', '_')])
-        local_path = os.path.join(base_dir, str(organisation.id), safe_name)
+        # For filesystem path, do NOT append '.git' to directory name
+        local_path = os.path.join(base_dir, organisation.slug, safe_name)
 
         # Create repository record
         repository = GitRepository(

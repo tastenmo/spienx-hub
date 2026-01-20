@@ -53,3 +53,17 @@ class SyncTaskSerializer(proto_serializers.ModelProtoSerializer):
             'commits_synced': {'read_only': True},
             'created_at': {'read_only': True},
         }
+
+
+class RepositoryTreeEntrySerializer(proto_serializers.ProtoSerializer):
+    """Serializer for FileEntry objects from repo_handlers"""
+    name = serializers.CharField()
+    type = serializers.CharField()  # 'tree' or 'blob'
+    path = serializers.CharField()
+    size = serializers.IntegerField(required=False, allow_null=True)
+    mode = serializers.IntegerField(required=False, allow_null=True)
+    sha = serializers.CharField(required=False, allow_null=True)
+
+    class Meta:
+        proto_class = repositories_pb2.RepositoryTreeEntryResponse
+        proto_class_list = repositories_pb2.RepositoryTreeEntryListResponse

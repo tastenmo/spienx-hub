@@ -8,6 +8,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-spienx_db}
       POSTGRES_USER: ${POSTGRES_USER:-spienx}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-spienx_password}
+    ports:
+      - "5555:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -33,8 +35,8 @@ services:
 
   web:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: spienx-hub/Dockerfile
     container_name: spienx-web
     environment:
       DEBUG: ${DEBUG:-False}
@@ -49,6 +51,7 @@ services:
     volumes:
       - .:/app
       - git_repos:/git
+      - ../jsx-builder:/jsx-builder
     working_dir: /app/src
     depends_on:
       postgres:
@@ -64,8 +67,8 @@ services:
 
   celery:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: spienx-hub/Dockerfile
     container_name: spienx-celery
     environment:
       DEBUG: ${DEBUG:-False}
@@ -77,6 +80,7 @@ services:
     volumes:
       - .:/app
       - git_repos:/git
+      - ../jsx-builder:/jsx-builder
     working_dir: /app/src
     command: poetry run celery -A config worker -l info
     networks:
@@ -84,8 +88,8 @@ services:
 
   celery-beat:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: spienx-hub/Dockerfile
     container_name: spienx-celery-beat
     environment:
       DEBUG: ${DEBUG:-False}
@@ -97,6 +101,7 @@ services:
     volumes:
       - .:/app
       - git_repos:/git
+      - ../jsx-builder:/jsx-builder
     working_dir: /app/src
     command: poetry run celery -A config beat -l info
     networks:

@@ -31,14 +31,14 @@ ENV PATH="/root/.local/bin:$PATH"
 # Set work directory
 WORKDIR /app
 
+# Copy jsx-builder dependency
+COPY jsx-builder /jsx-builder
+
 # Copy project files
-COPY . .
+COPY spienx-hub /app
 
 # Install project dependencies
 RUN poetry install --no-interaction --no-ansi
-
-# Copy application code
-COPY . .
 
 # Expose port for Django
 EXPOSE 8000

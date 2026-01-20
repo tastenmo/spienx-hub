@@ -1,5 +1,5 @@
 import pytest
-from documents.models import Document, Page, Section
+from documents.models import Document, Build, Page, Section
 from accounts.models import Organisation
 from repositories.models import GitRepository
 from documents.builder.jsx_builder import DjangoJsxOutputImplementation
@@ -21,9 +21,12 @@ class TestDjangoJsxOutputImplementation:
             organisation=org,
             local_path="/tmp/test_repo"
         )
-        return Document.objects.create(
+        doc = Document.objects.create(
             title="Test Doc",
-            source=repo,
+            source=repo
+        )
+        return Build.objects.create(
+            document=doc,
             reference="main",
             workdir=".",
             conf_path="conf.py"
@@ -59,7 +62,7 @@ class TestDjangoJsxOutputImplementation:
         impl.createPage(ctx, docId=document.pk)
         
         # Verify Page created
-        page = Page.objects.get(document=document, current_page_name="index")
+        page = Page.objects.get(build=document, path="index")
         assert page.title == "Home Page"
         assert page.context == {"key": "value"}
         
@@ -90,7 +93,7 @@ class TestDjangoJsxOutputImplementation:
         impl.createAsset(asset_obj, docId=document.pk)
         
         # Verify StaticAsset created
-        asset = StaticAsset.objects.get(document=document, path="_static/style.css")
+        asset = StaticAsset.objects.get(document=document.document, path="_static/style.css")
         assert asset.hash == "abc123def456"
 
     def test_content_block_deduplication_across_pages(self, document):
@@ -134,8 +137,8 @@ class TestDjangoJsxOutputImplementation:
         impl.createPage(ctx2, docId=document.pk)
 
         # Retrieve pages
-        page1 = Page.objects.get(document=document, current_page_name="page1")
-        page2 = Page.objects.get(document=document, current_page_name="page2")
+        page1 = Page.objects.get(build=document, path="page1")
+        page2 = Page.objects.get(build=document, path="page2")
 
         # Retrieve sections
         sec1 = page1.sections.get(hash="shared_hash_abc")
@@ -223,16 +226,19 @@ This is a test documentation.
             is_bare=False
         )
         
-        # Create Document
+        # Create Document and Build
         document = Document.objects.create(
             title="Test Sphinx Doc",
-            source=git_repo_model,
+            source=git_repo_model
+        )
+        build = Build.objects.create(
+            document=document,
             reference="HEAD",
             workdir=".",
             conf_path=repo_path
         )
         
-        yield document, temp_dir
+        yield build, temp_dir
         
         # Cleanup
         if os.path.exists(temp_dir):
@@ -240,26 +246,26 @@ This is a test documentation.
     
     def test_build_sphinxdocs_success(self, sphinx_repo_and_doc):
         """Test successful Sphinx build execution with real Sphinx"""
-        document, temp_dir = sphinx_repo_and_doc
+        build, temp_dir = sphinx_repo_and_doc
         
         # Call the actual task without mocking
-        result = build_sphinxdocs(document.pk)
+        result = build_sphinxdocs(build.pk)
         
         # Verify success - task returns True on successful build
         assert result is True
         
-        # Verify document was updated with build results
-        document.refresh_from_db()
+        # Verify build was updated with results
+        build.refresh_from_db()
         # global_context should have been set during build if pages were created
-        assert document.global_context is not None
-        assert document.last_build_at is not None
+        assert build.global_context is not None
+        assert build.last_build_at is not None
 
         # Verify Page objects were created during the build
-        pages = Page.objects.filter(document=document)
+        pages = Page.objects.filter(build=build)
         assert pages.count() >= 1, "At least one page should be created during Sphinx build"
         
         # Verify the index page exists
-        index_page = pages.filter(current_page_name="index").first()
+        index_page = pages.filter(path="index").first()
         assert index_page is not None, "Index page should be created"
         
         # Verify Section objects were created for the index page
@@ -279,29 +285,28 @@ This is a test documentation.
 
     
     def test_build_sphinxdocs_document_not_found(self):
-        """Test build_sphinxdocs with non-existent document"""
-        with patch('documents.tasks.Document.objects.get') as mock_get:
-            mock_get.side_effect = Exception("Document not found")
+        """Test build_sphinxdocs with non-existent build"""
+        with patch('documents.tasks.Build.objects.get') as mock_get:
+            mock_get.side_effect = Exception("Build not found")
             
             with patch('documents.tasks.logging') as mock_logging:
                 # The task should handle the exception
                 try:
                     result = build_sphinxdocs(99999)
                 except Exception:
-                    # Expected to raise when document not found
+                    # Expected to raise when build not found
                     pass
     
     def test_build_sphinxdocs_no_source_repo(self):
-        """Test build_sphinxdocs when document has no source repository"""
+        """Test build_sphinxdocs when build's document has no source repository"""
         org = Organisation.objects.create(name="Test Org 2", slug="test-org-2")
         
-        # Create document without source repo (will fail on FK constraint)
-        # instead, test by mocking
-        with patch('documents.tasks.Document.objects.get') as mock_get:
-            mock_doc = MagicMock()
-            mock_doc.source = None
-            mock_doc.pk = 1
-            mock_get.return_value = mock_doc
+        # Create build without source repo via mocking
+        with patch('documents.tasks.Build.objects.get') as mock_get:
+            mock_build = MagicMock()
+            mock_build.document.source = None
+            mock_build.pk = 1
+            mock_get.return_value = mock_build
             
             with patch('documents.tasks.logging'):
                 result = build_sphinxdocs(1)

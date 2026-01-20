@@ -4,6 +4,7 @@ import grpc
 import warnings
 
 from documents.grpc import documents_pb2 as documents_dot_grpc_dot_documents__pb2
+from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
 GRPC_GENERATED_VERSION = '1.76.0'
 GRPC_VERSION = grpc.__version__
@@ -25,7 +26,7 @@ if _version_not_supported:
     )
 
 
-class DocumentReadControllerStub(object):
+class BuildReadControllerStub(object):
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -35,23 +36,28 @@ class DocumentReadControllerStub(object):
             channel: A grpc.Channel.
         """
         self.List = channel.unary_unary(
-                '/config.documents.DocumentReadController/List',
-                request_serializer=documents_dot_grpc_dot_documents__pb2.DocumentListRequest.SerializeToString,
-                response_deserializer=documents_dot_grpc_dot_documents__pb2.DocumentListResponse.FromString,
+                '/config.documents.BuildReadController/List',
+                request_serializer=documents_dot_grpc_dot_documents__pb2.BuildReadListRequest.SerializeToString,
+                response_deserializer=documents_dot_grpc_dot_documents__pb2.BuildListResponse.FromString,
                 _registered_method=True)
         self.Retrieve = channel.unary_unary(
-                '/config.documents.DocumentReadController/Retrieve',
-                request_serializer=documents_dot_grpc_dot_documents__pb2.DocumentRetrieveRequest.SerializeToString,
-                response_deserializer=documents_dot_grpc_dot_documents__pb2.DocumentResponse.FromString,
+                '/config.documents.BuildReadController/Retrieve',
+                request_serializer=documents_dot_grpc_dot_documents__pb2.BuildRetrieveRequest.SerializeToString,
+                response_deserializer=documents_dot_grpc_dot_documents__pb2.BuildResponse.FromString,
+                _registered_method=True)
+        self.StartBuild = channel.unary_unary(
+                '/config.documents.BuildReadController/StartBuild',
+                request_serializer=documents_dot_grpc_dot_documents__pb2.BuildReadStartBuildRequest.SerializeToString,
+                response_deserializer=documents_dot_grpc_dot_documents__pb2.BuildResponse.FromString,
                 _registered_method=True)
         self.StreamPages = channel.unary_stream(
-                '/config.documents.DocumentReadController/StreamPages',
-                request_serializer=documents_dot_grpc_dot_documents__pb2.DocumentReadStreamPagesRequest.SerializeToString,
+                '/config.documents.BuildReadController/StreamPages',
+                request_serializer=documents_dot_grpc_dot_documents__pb2.BuildReadStreamPagesRequest.SerializeToString,
                 response_deserializer=documents_dot_grpc_dot_documents__pb2.PageResponse.FromString,
                 _registered_method=True)
 
 
-class DocumentReadControllerServicer(object):
+class BuildReadControllerServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def List(self, request, context):
@@ -66,6 +72,12 @@ class DocumentReadControllerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def StartBuild(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def StreamPages(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -73,32 +85,37 @@ class DocumentReadControllerServicer(object):
         raise NotImplementedError('Method not implemented!')
 
 
-def add_DocumentReadControllerServicer_to_server(servicer, server):
+def add_BuildReadControllerServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'List': grpc.unary_unary_rpc_method_handler(
                     servicer.List,
-                    request_deserializer=documents_dot_grpc_dot_documents__pb2.DocumentListRequest.FromString,
-                    response_serializer=documents_dot_grpc_dot_documents__pb2.DocumentListResponse.SerializeToString,
+                    request_deserializer=documents_dot_grpc_dot_documents__pb2.BuildReadListRequest.FromString,
+                    response_serializer=documents_dot_grpc_dot_documents__pb2.BuildListResponse.SerializeToString,
             ),
             'Retrieve': grpc.unary_unary_rpc_method_handler(
                     servicer.Retrieve,
-                    request_deserializer=documents_dot_grpc_dot_documents__pb2.DocumentRetrieveRequest.FromString,
-                    response_serializer=documents_dot_grpc_dot_documents__pb2.DocumentResponse.SerializeToString,
+                    request_deserializer=documents_dot_grpc_dot_documents__pb2.BuildRetrieveRequest.FromString,
+                    response_serializer=documents_dot_grpc_dot_documents__pb2.BuildResponse.SerializeToString,
+            ),
+            'StartBuild': grpc.unary_unary_rpc_method_handler(
+                    servicer.StartBuild,
+                    request_deserializer=documents_dot_grpc_dot_documents__pb2.BuildReadStartBuildRequest.FromString,
+                    response_serializer=documents_dot_grpc_dot_documents__pb2.BuildResponse.SerializeToString,
             ),
             'StreamPages': grpc.unary_stream_rpc_method_handler(
                     servicer.StreamPages,
-                    request_deserializer=documents_dot_grpc_dot_documents__pb2.DocumentReadStreamPagesRequest.FromString,
+                    request_deserializer=documents_dot_grpc_dot_documents__pb2.BuildReadStreamPagesRequest.FromString,
                     response_serializer=documents_dot_grpc_dot_documents__pb2.PageResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'config.documents.DocumentReadController', rpc_method_handlers)
+            'config.documents.BuildReadController', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('config.documents.DocumentReadController', rpc_method_handlers)
+    server.add_registered_method_handlers('config.documents.BuildReadController', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
-class DocumentReadController(object):
+class BuildReadController(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
@@ -115,9 +132,9 @@ class DocumentReadController(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/config.documents.DocumentReadController/List',
-            documents_dot_grpc_dot_documents__pb2.DocumentListRequest.SerializeToString,
-            documents_dot_grpc_dot_documents__pb2.DocumentListResponse.FromString,
+            '/config.documents.BuildReadController/List',
+            documents_dot_grpc_dot_documents__pb2.BuildReadListRequest.SerializeToString,
+            documents_dot_grpc_dot_documents__pb2.BuildListResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -142,9 +159,36 @@ class DocumentReadController(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/config.documents.DocumentReadController/Retrieve',
-            documents_dot_grpc_dot_documents__pb2.DocumentRetrieveRequest.SerializeToString,
-            documents_dot_grpc_dot_documents__pb2.DocumentResponse.FromString,
+            '/config.documents.BuildReadController/Retrieve',
+            documents_dot_grpc_dot_documents__pb2.BuildRetrieveRequest.SerializeToString,
+            documents_dot_grpc_dot_documents__pb2.BuildResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def StartBuild(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.documents.BuildReadController/StartBuild',
+            documents_dot_grpc_dot_documents__pb2.BuildReadStartBuildRequest.SerializeToString,
+            documents_dot_grpc_dot_documents__pb2.BuildResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -169,9 +213,339 @@ class DocumentReadController(object):
         return grpc.experimental.unary_stream(
             request,
             target,
-            '/config.documents.DocumentReadController/StreamPages',
-            documents_dot_grpc_dot_documents__pb2.DocumentReadStreamPagesRequest.SerializeToString,
+            '/config.documents.BuildReadController/StreamPages',
+            documents_dot_grpc_dot_documents__pb2.BuildReadStreamPagesRequest.SerializeToString,
             documents_dot_grpc_dot_documents__pb2.PageResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+
+class DocumentControllerStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.Create = channel.unary_unary(
+                '/config.documents.DocumentController/Create',
+                request_serializer=documents_dot_grpc_dot_documents__pb2.DocumentRequest.SerializeToString,
+                response_deserializer=documents_dot_grpc_dot_documents__pb2.DocumentResponse.FromString,
+                _registered_method=True)
+        self.CreateAndStartBuild = channel.unary_unary(
+                '/config.documents.DocumentController/CreateAndStartBuild',
+                request_serializer=documents_dot_grpc_dot_documents__pb2.DocumentCreateAndStartBuildRequest.SerializeToString,
+                response_deserializer=documents_dot_grpc_dot_documents__pb2.BuildResponse.FromString,
+                _registered_method=True)
+        self.Destroy = channel.unary_unary(
+                '/config.documents.DocumentController/Destroy',
+                request_serializer=documents_dot_grpc_dot_documents__pb2.DocumentDestroyRequest.SerializeToString,
+                response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                _registered_method=True)
+        self.List = channel.unary_unary(
+                '/config.documents.DocumentController/List',
+                request_serializer=documents_dot_grpc_dot_documents__pb2.DocumentListRequest.SerializeToString,
+                response_deserializer=documents_dot_grpc_dot_documents__pb2.DocumentListResponse.FromString,
+                _registered_method=True)
+        self.PartialUpdate = channel.unary_unary(
+                '/config.documents.DocumentController/PartialUpdate',
+                request_serializer=documents_dot_grpc_dot_documents__pb2.DocumentPartialUpdateRequest.SerializeToString,
+                response_deserializer=documents_dot_grpc_dot_documents__pb2.DocumentResponse.FromString,
+                _registered_method=True)
+        self.Retrieve = channel.unary_unary(
+                '/config.documents.DocumentController/Retrieve',
+                request_serializer=documents_dot_grpc_dot_documents__pb2.DocumentRetrieveRequest.SerializeToString,
+                response_deserializer=documents_dot_grpc_dot_documents__pb2.DocumentResponse.FromString,
+                _registered_method=True)
+        self.Update = channel.unary_unary(
+                '/config.documents.DocumentController/Update',
+                request_serializer=documents_dot_grpc_dot_documents__pb2.DocumentRequest.SerializeToString,
+                response_deserializer=documents_dot_grpc_dot_documents__pb2.DocumentResponse.FromString,
+                _registered_method=True)
+
+
+class DocumentControllerServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def Create(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CreateAndStartBuild(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Destroy(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def List(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def PartialUpdate(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Retrieve(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Update(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_DocumentControllerServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'Create': grpc.unary_unary_rpc_method_handler(
+                    servicer.Create,
+                    request_deserializer=documents_dot_grpc_dot_documents__pb2.DocumentRequest.FromString,
+                    response_serializer=documents_dot_grpc_dot_documents__pb2.DocumentResponse.SerializeToString,
+            ),
+            'CreateAndStartBuild': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateAndStartBuild,
+                    request_deserializer=documents_dot_grpc_dot_documents__pb2.DocumentCreateAndStartBuildRequest.FromString,
+                    response_serializer=documents_dot_grpc_dot_documents__pb2.BuildResponse.SerializeToString,
+            ),
+            'Destroy': grpc.unary_unary_rpc_method_handler(
+                    servicer.Destroy,
+                    request_deserializer=documents_dot_grpc_dot_documents__pb2.DocumentDestroyRequest.FromString,
+                    response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            ),
+            'List': grpc.unary_unary_rpc_method_handler(
+                    servicer.List,
+                    request_deserializer=documents_dot_grpc_dot_documents__pb2.DocumentListRequest.FromString,
+                    response_serializer=documents_dot_grpc_dot_documents__pb2.DocumentListResponse.SerializeToString,
+            ),
+            'PartialUpdate': grpc.unary_unary_rpc_method_handler(
+                    servicer.PartialUpdate,
+                    request_deserializer=documents_dot_grpc_dot_documents__pb2.DocumentPartialUpdateRequest.FromString,
+                    response_serializer=documents_dot_grpc_dot_documents__pb2.DocumentResponse.SerializeToString,
+            ),
+            'Retrieve': grpc.unary_unary_rpc_method_handler(
+                    servicer.Retrieve,
+                    request_deserializer=documents_dot_grpc_dot_documents__pb2.DocumentRetrieveRequest.FromString,
+                    response_serializer=documents_dot_grpc_dot_documents__pb2.DocumentResponse.SerializeToString,
+            ),
+            'Update': grpc.unary_unary_rpc_method_handler(
+                    servicer.Update,
+                    request_deserializer=documents_dot_grpc_dot_documents__pb2.DocumentRequest.FromString,
+                    response_serializer=documents_dot_grpc_dot_documents__pb2.DocumentResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'config.documents.DocumentController', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('config.documents.DocumentController', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class DocumentController(object):
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def Create(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.documents.DocumentController/Create',
+            documents_dot_grpc_dot_documents__pb2.DocumentRequest.SerializeToString,
+            documents_dot_grpc_dot_documents__pb2.DocumentResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CreateAndStartBuild(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.documents.DocumentController/CreateAndStartBuild',
+            documents_dot_grpc_dot_documents__pb2.DocumentCreateAndStartBuildRequest.SerializeToString,
+            documents_dot_grpc_dot_documents__pb2.BuildResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Destroy(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.documents.DocumentController/Destroy',
+            documents_dot_grpc_dot_documents__pb2.DocumentDestroyRequest.SerializeToString,
+            google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def List(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.documents.DocumentController/List',
+            documents_dot_grpc_dot_documents__pb2.DocumentListRequest.SerializeToString,
+            documents_dot_grpc_dot_documents__pb2.DocumentListResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def PartialUpdate(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.documents.DocumentController/PartialUpdate',
+            documents_dot_grpc_dot_documents__pb2.DocumentPartialUpdateRequest.SerializeToString,
+            documents_dot_grpc_dot_documents__pb2.DocumentResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Retrieve(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.documents.DocumentController/Retrieve',
+            documents_dot_grpc_dot_documents__pb2.DocumentRetrieveRequest.SerializeToString,
+            documents_dot_grpc_dot_documents__pb2.DocumentResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Update(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.documents.DocumentController/Update',
+            documents_dot_grpc_dot_documents__pb2.DocumentRequest.SerializeToString,
+            documents_dot_grpc_dot_documents__pb2.DocumentResponse.FromString,
             options,
             channel_credentials,
             insecure,

@@ -22,32 +22,53 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
+from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1e\x64ocuments/grpc/documents.proto\x12\x10\x63onfig.documents\x1a\x1cgoogle/protobuf/struct.proto\"A\n\x14\x43ontentBlockResponse\x12\x14\n\x0c\x63ontent_hash\x18\x01 \x01(\t\x12\x13\n\x0bjsx_content\x18\x02 \x01(\t\"\x15\n\x13\x44ocumentListRequest\"K\n\x14\x44ocumentListResponse\x12\x33\n\x07results\x18\x01 \x03(\x0b\x32\".config.documents.DocumentResponse\"5\n\x1e\x44ocumentReadStreamPagesRequest\x12\x13\n\x0b\x64ocument_id\x18\x01 \x01(\x03\"\xf7\x01\n\x10\x44ocumentResponse\x12\x0f\n\x02id\x18\x01 \x01(\x03H\x00\x88\x01\x01\x12\r\n\x05title\x18\x02 \x01(\t\x12\x0e\n\x06source\x18\x03 \x01(\x03\x12\x11\n\treference\x18\x04 \x01(\t\x12\x0f\n\x07workdir\x18\x05 \x01(\t\x12\x11\n\tconf_path\x18\x06 \x01(\t\x12\x1a\n\rlast_build_at\x18\x07 \x01(\tH\x01\x88\x01\x01\x12\x34\n\x0eglobal_context\x18\x08 \x01(\x0b\x32\x17.google.protobuf.StructH\x02\x88\x01\x01\x42\x05\n\x03_idB\x10\n\x0e_last_build_atB\x11\n\x0f_global_context\"%\n\x17\x44ocumentRetrieveRequest\x12\n\n\x02id\x18\x01 \x01(\x03\"\xa8\x01\n\x0cPageResponse\x12\x19\n\x11\x63urrent_page_name\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12-\n\x07\x63ontext\x18\x03 \x01(\x0b\x32\x17.google.protobuf.StructH\x00\x88\x01\x01\x12\x33\n\x08sections\x18\x04 \x03(\x0b\x32!.config.documents.SectionResponseB\n\n\x08_context\"\xd2\x01\n\x0fSectionResponse\x12\r\n\x05title\x18\x01 \x01(\t\x12\x11\n\tsphinx_id\x18\x02 \x01(\t\x12\x0c\n\x04hash\x18\x03 \x01(\t\x12\x13\n\x0bsource_path\x18\x04 \x01(\t\x12\x12\n\nstart_line\x18\x05 \x01(\x05\x12\x10\n\x08\x65nd_line\x18\x06 \x01(\x05\x12\x42\n\rcontent_block\x18\x07 \x01(\x0b\x32&.config.documents.ContentBlockResponseH\x00\x88\x01\x01\x42\x10\n\x0e_content_block2\xb3\x02\n\x16\x44ocumentReadController\x12W\n\x04List\x12%.config.documents.DocumentListRequest\x1a&.config.documents.DocumentListResponse\"\x00\x12[\n\x08Retrieve\x12).config.documents.DocumentRetrieveRequest\x1a\".config.documents.DocumentResponse\"\x00\x12\x63\n\x0bStreamPages\x12\x30.config.documents.DocumentReadStreamPagesRequest\x1a\x1e.config.documents.PageResponse\"\x00\x30\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1e\x64ocuments/grpc/documents.proto\x12\x10\x63onfig.documents\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1cgoogle/protobuf/struct.proto\"E\n\x11\x42uildListResponse\x12\x30\n\x07results\x18\x01 \x03(\x0b\x32\x1f.config.documents.BuildResponse\"(\n\x14\x42uildReadListRequest\x12\x10\n\x08\x64ocument\x18\x01 \x01(\x03\".\n\x1a\x42uildReadStartBuildRequest\x12\x10\n\x08\x62uild_id\x18\x01 \x01(\x03\"/\n\x1b\x42uildReadStreamPagesRequest\x12\x10\n\x08\x62uild_id\x18\x01 \x01(\x03\"\xe7\x01\n\rBuildResponse\x12\x0f\n\x02id\x18\x01 \x01(\x03H\x00\x88\x01\x01\x12\x10\n\x08\x64ocument\x18\x02 \x01(\x03\x12\x11\n\treference\x18\x03 \x01(\t\x12\x0f\n\x07workdir\x18\x04 \x01(\t\x12\x11\n\tconf_path\x18\x05 \x01(\t\x12\x1a\n\rlast_build_at\x18\x06 \x01(\tH\x01\x88\x01\x01\x12\x34\n\x0eglobal_context\x18\x07 \x01(\x0b\x32\x17.google.protobuf.StructH\x02\x88\x01\x01\x42\x05\n\x03_idB\x10\n\x0e_last_build_atB\x11\n\x0f_global_context\"\"\n\x14\x42uildRetrieveRequest\x12\n\n\x02id\x18\x01 \x01(\x03\"A\n\x14\x43ontentBlockResponse\x12\x14\n\x0c\x63ontent_hash\x18\x01 \x01(\t\x12\x13\n\x0bjsx_content\x18\x02 \x01(\t\"\x95\x01\n\"DocumentCreateAndStartBuildRequest\x12\r\n\x05title\x18\x01 \x01(\t\x12\x0e\n\x06source\x18\x02 \x01(\x03\x12\x11\n\treference\x18\x03 \x01(\t\x12\x0f\n\x07workdir\x18\x04 \x01(\t\x12\x11\n\tconf_path\x18\x05 \x01(\t\x12\x19\n\x11start_immediately\x18\x06 \x01(\x08\"$\n\x16\x44ocumentDestroyRequest\x12\n\n\x02id\x18\x01 \x01(\x03\"\x15\n\x13\x44ocumentListRequest\"K\n\x14\x44ocumentListResponse\x12\x33\n\x07results\x18\x01 \x03(\x0b\x32\".config.documents.DocumentResponse\"u\n\x1c\x44ocumentPartialUpdateRequest\x12\x0f\n\x02id\x18\x01 \x01(\x03H\x00\x88\x01\x01\x12\r\n\x05title\x18\x02 \x01(\t\x12\x0e\n\x06source\x18\x03 \x01(\x03\x12\x1e\n\x16_partial_update_fields\x18\x04 \x03(\tB\x05\n\x03_id\"H\n\x0f\x44ocumentRequest\x12\x0f\n\x02id\x18\x01 \x01(\x03H\x00\x88\x01\x01\x12\r\n\x05title\x18\x02 \x01(\t\x12\x0e\n\x06source\x18\x03 \x01(\x03\x42\x05\n\x03_id\"I\n\x10\x44ocumentResponse\x12\x0f\n\x02id\x18\x01 \x01(\x03H\x00\x88\x01\x01\x12\r\n\x05title\x18\x02 \x01(\t\x12\x0e\n\x06source\x18\x03 \x01(\x03\x42\x05\n\x03_id\"%\n\x17\x44ocumentRetrieveRequest\x12\n\n\x02id\x18\x01 \x01(\x03\"\xa8\x01\n\x0cPageResponse\x12\r\n\x05title\x18\x02 \x01(\t\x12-\n\x07\x63ontext\x18\x03 \x01(\x0b\x32\x17.google.protobuf.StructH\x00\x88\x01\x01\x12\x33\n\x08sections\x18\x04 \x03(\x0b\x32!.config.documents.SectionResponse\x12\x19\n\x11\x63urrent_page_name\x18\x05 \x01(\tB\n\n\x08_context\"\xd2\x01\n\x0fSectionResponse\x12\r\n\x05title\x18\x01 \x01(\t\x12\x11\n\tsphinx_id\x18\x02 \x01(\t\x12\x0c\n\x04hash\x18\x03 \x01(\t\x12\x13\n\x0bsource_path\x18\x04 \x01(\t\x12\x12\n\nstart_line\x18\x05 \x01(\x05\x12\x10\n\x08\x65nd_line\x18\x06 \x01(\x05\x12\x42\n\rcontent_block\x18\x07 \x01(\x0b\x32&.config.documents.ContentBlockResponseH\x00\x88\x01\x01\x42\x10\n\x0e_content_block2\x84\x03\n\x13\x42uildReadController\x12U\n\x04List\x12&.config.documents.BuildReadListRequest\x1a#.config.documents.BuildListResponse\"\x00\x12U\n\x08Retrieve\x12&.config.documents.BuildRetrieveRequest\x1a\x1f.config.documents.BuildResponse\"\x00\x12]\n\nStartBuild\x12,.config.documents.BuildReadStartBuildRequest\x1a\x1f.config.documents.BuildResponse\"\x00\x12`\n\x0bStreamPages\x12-.config.documents.BuildReadStreamPagesRequest\x1a\x1e.config.documents.PageResponse\"\x00\x30\x01\x32\x96\x05\n\x12\x44ocumentController\x12Q\n\x06\x43reate\x12!.config.documents.DocumentRequest\x1a\".config.documents.DocumentResponse\"\x00\x12n\n\x13\x43reateAndStartBuild\x12\x34.config.documents.DocumentCreateAndStartBuildRequest\x1a\x1f.config.documents.BuildResponse\"\x00\x12M\n\x07\x44\x65stroy\x12(.config.documents.DocumentDestroyRequest\x1a\x16.google.protobuf.Empty\"\x00\x12W\n\x04List\x12%.config.documents.DocumentListRequest\x1a&.config.documents.DocumentListResponse\"\x00\x12\x65\n\rPartialUpdate\x12..config.documents.DocumentPartialUpdateRequest\x1a\".config.documents.DocumentResponse\"\x00\x12[\n\x08Retrieve\x12).config.documents.DocumentRetrieveRequest\x1a\".config.documents.DocumentResponse\"\x00\x12Q\n\x06Update\x12!.config.documents.DocumentRequest\x1a\".config.documents.DocumentResponse\"\x00\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'documents.grpc.documents_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_CONTENTBLOCKRESPONSE']._serialized_start=82
-  _globals['_CONTENTBLOCKRESPONSE']._serialized_end=147
-  _globals['_DOCUMENTLISTREQUEST']._serialized_start=149
-  _globals['_DOCUMENTLISTREQUEST']._serialized_end=170
-  _globals['_DOCUMENTLISTRESPONSE']._serialized_start=172
-  _globals['_DOCUMENTLISTRESPONSE']._serialized_end=247
-  _globals['_DOCUMENTREADSTREAMPAGESREQUEST']._serialized_start=249
-  _globals['_DOCUMENTREADSTREAMPAGESREQUEST']._serialized_end=302
-  _globals['_DOCUMENTRESPONSE']._serialized_start=305
-  _globals['_DOCUMENTRESPONSE']._serialized_end=552
-  _globals['_DOCUMENTRETRIEVEREQUEST']._serialized_start=554
-  _globals['_DOCUMENTRETRIEVEREQUEST']._serialized_end=591
-  _globals['_PAGERESPONSE']._serialized_start=594
-  _globals['_PAGERESPONSE']._serialized_end=762
-  _globals['_SECTIONRESPONSE']._serialized_start=765
-  _globals['_SECTIONRESPONSE']._serialized_end=975
-  _globals['_DOCUMENTREADCONTROLLER']._serialized_start=978
-  _globals['_DOCUMENTREADCONTROLLER']._serialized_end=1285
+  _globals['_BUILDLISTRESPONSE']._serialized_start=111
+  _globals['_BUILDLISTRESPONSE']._serialized_end=180
+  _globals['_BUILDREADLISTREQUEST']._serialized_start=182
+  _globals['_BUILDREADLISTREQUEST']._serialized_end=222
+  _globals['_BUILDREADSTARTBUILDREQUEST']._serialized_start=224
+  _globals['_BUILDREADSTARTBUILDREQUEST']._serialized_end=270
+  _globals['_BUILDREADSTREAMPAGESREQUEST']._serialized_start=272
+  _globals['_BUILDREADSTREAMPAGESREQUEST']._serialized_end=319
+  _globals['_BUILDRESPONSE']._serialized_start=322
+  _globals['_BUILDRESPONSE']._serialized_end=553
+  _globals['_BUILDRETRIEVEREQUEST']._serialized_start=555
+  _globals['_BUILDRETRIEVEREQUEST']._serialized_end=589
+  _globals['_CONTENTBLOCKRESPONSE']._serialized_start=591
+  _globals['_CONTENTBLOCKRESPONSE']._serialized_end=656
+  _globals['_DOCUMENTCREATEANDSTARTBUILDREQUEST']._serialized_start=659
+  _globals['_DOCUMENTCREATEANDSTARTBUILDREQUEST']._serialized_end=808
+  _globals['_DOCUMENTDESTROYREQUEST']._serialized_start=810
+  _globals['_DOCUMENTDESTROYREQUEST']._serialized_end=846
+  _globals['_DOCUMENTLISTREQUEST']._serialized_start=848
+  _globals['_DOCUMENTLISTREQUEST']._serialized_end=869
+  _globals['_DOCUMENTLISTRESPONSE']._serialized_start=871
+  _globals['_DOCUMENTLISTRESPONSE']._serialized_end=946
+  _globals['_DOCUMENTPARTIALUPDATEREQUEST']._serialized_start=948
+  _globals['_DOCUMENTPARTIALUPDATEREQUEST']._serialized_end=1065
+  _globals['_DOCUMENTREQUEST']._serialized_start=1067
+  _globals['_DOCUMENTREQUEST']._serialized_end=1139
+  _globals['_DOCUMENTRESPONSE']._serialized_start=1141
+  _globals['_DOCUMENTRESPONSE']._serialized_end=1214
+  _globals['_DOCUMENTRETRIEVEREQUEST']._serialized_start=1216
+  _globals['_DOCUMENTRETRIEVEREQUEST']._serialized_end=1253
+  _globals['_PAGERESPONSE']._serialized_start=1256
+  _globals['_PAGERESPONSE']._serialized_end=1424
+  _globals['_SECTIONRESPONSE']._serialized_start=1427
+  _globals['_SECTIONRESPONSE']._serialized_end=1637
+  _globals['_BUILDREADCONTROLLER']._serialized_start=1640
+  _globals['_BUILDREADCONTROLLER']._serialized_end=2028
+  _globals['_DOCUMENTCONTROLLER']._serialized_start=2031
+  _globals['_DOCUMENTCONTROLLER']._serialized_end=2693
 # @@protoc_insertion_point(module_scope)

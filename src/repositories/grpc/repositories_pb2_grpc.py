@@ -337,6 +337,16 @@ class GitRepositoryControllerStub(object):
                 request_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListRequest.SerializeToString,
                 response_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListResponse.FromString,
                 _registered_method=True)
+        self.ListRefs = channel.unary_unary(
+                '/config.repositories.GitRepositoryController/ListRefs',
+                request_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListRefsRequest.SerializeToString,
+                response_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListRefsResponse.FromString,
+                _registered_method=True)
+        self.ListTree = channel.unary_unary(
+                '/config.repositories.GitRepositoryController/ListTree',
+                request_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListTreeRequest.SerializeToString,
+                response_deserializer=repositories_dot_grpc_dot_repositories__pb2.RepositoryTreeEntryListResponse.FromString,
+                _registered_method=True)
         self.PartialUpdate = channel.unary_unary(
                 '/config.repositories.GitRepositoryController/PartialUpdate',
                 request_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryPartialUpdateRequest.SerializeToString,
@@ -370,6 +380,18 @@ class GitRepositoryControllerServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def List(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListRefs(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListTree(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -410,6 +432,16 @@ def add_GitRepositoryControllerServicer_to_server(servicer, server):
                     servicer.List,
                     request_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListRequest.FromString,
                     response_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListResponse.SerializeToString,
+            ),
+            'ListRefs': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListRefs,
+                    request_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListRefsRequest.FromString,
+                    response_serializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListRefsResponse.SerializeToString,
+            ),
+            'ListTree': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListTree,
+                    request_deserializer=repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListTreeRequest.FromString,
+                    response_serializer=repositories_dot_grpc_dot_repositories__pb2.RepositoryTreeEntryListResponse.SerializeToString,
             ),
             'PartialUpdate': grpc.unary_unary_rpc_method_handler(
                     servicer.PartialUpdate,
@@ -508,6 +540,60 @@ class GitRepositoryController(object):
             '/config.repositories.GitRepositoryController/List',
             repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListRequest.SerializeToString,
             repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListRefs(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.GitRepositoryController/ListRefs',
+            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListRefsRequest.SerializeToString,
+            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListRefsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListTree(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.repositories.GitRepositoryController/ListTree',
+            repositories_dot_grpc_dot_repositories__pb2.GitRepositoryListTreeRequest.SerializeToString,
+            repositories_dot_grpc_dot_repositories__pb2.RepositoryTreeEntryListResponse.FromString,
             options,
             channel_credentials,
             insecure,

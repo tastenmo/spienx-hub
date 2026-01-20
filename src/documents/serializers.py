@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django_socio_grpc import proto_serializers
-from .models import Document, Page, Section, ContentBlock
+from .models import Document, Build, Page, Section, ContentBlock
 from documents.grpc import documents_pb2
 
 
@@ -8,6 +8,13 @@ class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
         fields = '__all__'
+
+
+class BuildSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Build
+        fields = '__all__'
+
 
 class ContentBlockProtoSerializer(proto_serializers.ModelProtoSerializer):
     class Meta:
@@ -27,6 +34,7 @@ class SectionProtoSerializer(proto_serializers.ModelProtoSerializer):
 
 class PageProtoSerializer(proto_serializers.ModelProtoSerializer):
     sections = SectionProtoSerializer(many=True, read_only=True)
+    current_page_name = serializers.CharField(source='path')
 
     class Meta:
         model = Page
@@ -34,9 +42,18 @@ class PageProtoSerializer(proto_serializers.ModelProtoSerializer):
         fields = ['current_page_name', 'title', 'context', 'sections']
 
 
+class BuildProtoSerializer(proto_serializers.ModelProtoSerializer):
+    class Meta:
+        model = Build
+        proto_class = documents_pb2.BuildResponse
+        proto_class_list = documents_pb2.BuildListResponse
+        # Excluding new fields (commit_hash, version) to maintain proto compatibility
+        fields = ['id', 'document', 'reference', 'workdir', 'conf_path', 'last_build_at', 'global_context']
+
+
 class DocumentProtoSerializer(proto_serializers.ModelProtoSerializer):
     class Meta:
         model = Document
         proto_class = documents_pb2.DocumentResponse
         proto_class_list = documents_pb2.DocumentListResponse
-        fields = ['id', 'title', 'source', 'reference', 'workdir', 'conf_path', 'last_build_at', 'global_context']
+        fields = ['id', 'title', 'source']

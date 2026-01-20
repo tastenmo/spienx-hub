@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 from sphinx.application import Sphinx
 from sphinx.builders.html import BuildInfo
 from jsx_builder.builders import JSXBuilder, JsxOutputImplementation
-from documents.models import Document, Page, Section, StaticAsset, ContentBlock
+from documents.models import Build, Page, Section, StaticAsset, ContentBlock
 
 class DjangoJsxOutputImplementation(JsxOutputImplementation):
     """Django ORM implementation wrapper for JSX output."""
@@ -24,24 +24,24 @@ class DjangoJsxOutputImplementation(JsxOutputImplementation):
 
 
         if kwds.get("docId"):
-            doc = Document.objects.get(pk=kwds["docId"])
+            build = Build.objects.get(pk=kwds["docId"])
 
-            logging.debug("Finalizing Document for obj: %s ", doc.title)
+            logging.debug("Finalizing Build for obj: %s ", build)
 
-            doc.last_build_at = obj.get("last_build_at")
-            doc.global_context = obj.get("global_context", {})
-            doc.save()
+            build.last_build_at = obj.get("last_build_at")
+            build.global_context = obj.get("global_context", {})
+            build.save()
         
     def createAsset(self, obj: Any, *args: Any, **kwds: Any) -> None:
 
         if kwds.get("docId"):
-            doc = Document.objects.get(pk=kwds["docId"])
+            build = Build.objects.get(pk=kwds["docId"])
 
             logging.debug("Creating StaticAsset for obj: %s ", obj.get("path"))
 
             # Use update_or_create to avoid duplicates
             asset, created = StaticAsset.objects.update_or_create(
-                document=doc,
+                document=build.document,
                 path=obj.get("path", ""),
                 defaults={
                     'hash': obj.get("hash", ""),
@@ -51,7 +51,7 @@ class DjangoJsxOutputImplementation(JsxOutputImplementation):
     def createPage(self, obj: Any, *args: Any, **kwds: Any) -> types.NoneType:
         
         if kwds.get("docId"):
-            doc = Document.objects.get(pk=kwds["docId"])
+            build = Build.objects.get(pk=kwds["docId"])
 
             # Get page name from context - could be 'pagename' or 'current_page_name'
             page_name = obj.get("current_page_name") or obj.get("pagename", "")
@@ -63,17 +63,17 @@ class DjangoJsxOutputImplementation(JsxOutputImplementation):
 
             # Use update_or_create to avoid duplicates
             page, created = Page.objects.update_or_create(
-                document=doc,
-                current_page_name=page_name,
+                build=build,
+                path=page_name,
                 defaults={
                     'title': obj.get("title", ""),
-                    'context': obj.get("context", {}),
+                    'context': obj.get("context", obj.get("body", {})),
                 }
             )
 
             if page:
 
-                logging.debug("Created Page: %s ", page.current_page_name)
+                logging.debug("Created Page: %s ", page.path)
 
                 # Create sections for the page
                 sections = obj.get("section_list", [])

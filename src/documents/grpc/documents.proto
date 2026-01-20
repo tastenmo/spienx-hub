@@ -2,17 +2,72 @@ syntax = "proto3";
 
 package config.documents;
 
+import "google/protobuf/empty.proto";
 import "google/protobuf/struct.proto";
 
-service DocumentReadController {
+service BuildReadController {
+    rpc List(BuildReadListRequest) returns (BuildListResponse) {}
+    rpc Retrieve(BuildRetrieveRequest) returns (BuildResponse) {}
+    rpc StartBuild(BuildReadStartBuildRequest) returns (BuildResponse) {}
+    rpc StreamPages(BuildReadStreamPagesRequest) returns (stream PageResponse) {}
+}
+
+service DocumentController {
+    rpc Create(DocumentRequest) returns (DocumentResponse) {}
+    rpc CreateAndStartBuild(DocumentCreateAndStartBuildRequest) returns (BuildResponse) {}
+    rpc Destroy(DocumentDestroyRequest) returns (google.protobuf.Empty) {}
     rpc List(DocumentListRequest) returns (DocumentListResponse) {}
+    rpc PartialUpdate(DocumentPartialUpdateRequest) returns (DocumentResponse) {}
     rpc Retrieve(DocumentRetrieveRequest) returns (DocumentResponse) {}
-    rpc StreamPages(DocumentReadStreamPagesRequest) returns (stream PageResponse) {}
+    rpc Update(DocumentRequest) returns (DocumentResponse) {}
+}
+
+message BuildListResponse {
+    repeated BuildResponse results = 1;
+}
+
+message BuildReadListRequest {
+    int64 document = 1;
+}
+
+message BuildReadStartBuildRequest {
+    int64 build_id = 1;
+}
+
+message BuildReadStreamPagesRequest {
+    int64 build_id = 1;
+}
+
+message BuildResponse {
+    optional int64 id = 1;
+    int64 document = 2;
+    string reference = 3;
+    string workdir = 4;
+    string conf_path = 5;
+    optional string last_build_at = 6;
+    optional google.protobuf.Struct global_context = 7;
+}
+
+message BuildRetrieveRequest {
+    int64 id = 1;
 }
 
 message ContentBlockResponse {
     string content_hash = 1;
     string jsx_content = 2;
+}
+
+message DocumentCreateAndStartBuildRequest {
+    string title = 1;
+    int64 source = 2;
+    string reference = 3;
+    string workdir = 4;
+    string conf_path = 5;
+    bool start_immediately = 6;
+}
+
+message DocumentDestroyRequest {
+    int64 id = 1;
 }
 
 message DocumentListRequest {
@@ -22,19 +77,23 @@ message DocumentListResponse {
     repeated DocumentResponse results = 1;
 }
 
-message DocumentReadStreamPagesRequest {
-    int64 document_id = 1;
+message DocumentPartialUpdateRequest {
+    optional int64 id = 1;
+    string title = 2;
+    int64 source = 3;
+    repeated string _partial_update_fields = 4;
+}
+
+message DocumentRequest {
+    optional int64 id = 1;
+    string title = 2;
+    int64 source = 3;
 }
 
 message DocumentResponse {
     optional int64 id = 1;
     string title = 2;
     int64 source = 3;
-    string reference = 4;
-    string workdir = 5;
-    string conf_path = 6;
-    optional string last_build_at = 7;
-    optional google.protobuf.Struct global_context = 8;
 }
 
 message DocumentRetrieveRequest {
@@ -42,10 +101,10 @@ message DocumentRetrieveRequest {
 }
 
 message PageResponse {
-    string current_page_name = 1;
     string title = 2;
     optional google.protobuf.Struct context = 3;
     repeated SectionResponse sections = 4;
+    string current_page_name = 5;
 }
 
 message SectionResponse {

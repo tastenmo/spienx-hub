@@ -27,7 +27,9 @@ django-cors-headers = "^4.9.0"
 django-allauth = "^0.57.0"
 djangorestframework = "^3.14.0"
 django-guardian = "^2.4.0"
-jsx-builder = { git = "https://github.com/tastenmo/jsx-builder.git" }
+jsx-builder = { path = "../jsx-builder", develop = true }
+django-filter = ">=23.0,<25.0"
+dunamai = "^1.25.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.0.2"

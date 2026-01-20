@@ -37,6 +37,9 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://hub.tastenmo.de,http://localhost:3000,http://localhost:5173,http://localhost:8000,http://127.0.0.1:8000').split(',')
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'https://hub.tastenmo.de,http://localhost:3000,http://localhost:5173,http://localhost:8000,http://127.0.0.1:8000').split(',')
+CORS_ALLOW_CREDENTIALS = True
+
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
@@ -46,12 +49,14 @@ SESSION_COOKIE_SECURE = True
 
 INSTALLED_APPS = [
     'daphne',
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_filters',
     'django_socio_grpc',
     'rest_framework',
     'rest_framework.authtoken',
@@ -67,6 +72,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'core.middleware.HeaderDebugMiddleware',
     'core.middleware.AllowNullOriginMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -207,37 +213,6 @@ GRPC_FRAMEWORK = {
         # 'django.contrib.auth.middleware.AuthenticationMiddleware', # Requires SessionMiddleware
     ],
 }
-
-# CORS configuration (optional, for development)
-try:
-    from corsheaders.defaults import default_headers
-    
-    CORS_ALLOWED_ORIGINS = [
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "https://hub.tastenmo.de",
-    ]
-    
-    CORS_ALLOW_CREDENTIALS = True
-    
-    CORS_ALLOW_HEADERS = list(default_headers) + [
-        'x-grpc-web',
-        'grpc-timeout',
-        'x-csrftoken',
-    ]
-    
-    CORS_EXPOSE_HEADERS = [
-        'grpc-status',
-        'grpc-message',
-        'grpc-status-details-bin',
-    ]
-    
-    # Add corsheaders to installed apps and middleware if available
-    INSTALLED_APPS.append('corsheaders')
-    MIDDLEWARE.insert(3, 'corsheaders.middleware.CorsMiddleware')
-except ImportError:
-    # corsheaders is optional; skip if not available (e.g., during testing)
-    pass
 
 # Git repository settings
 GIT_DOMAIN = os.getenv('GIT_DOMAIN', 'hub.tastenmo.de')
