@@ -101,6 +101,14 @@ class RepositoryHandler:
                 self.repo.git.worktree('add', path, reference)
                 return Repo(path)
             except (InvalidGitRepositoryError, NoSuchPathError, GitCommandError) as e:
+                # If the reference is already attached to another worktree, prune and retry once.
+                if isinstance(e, GitCommandError) and "already used by worktree" in str(e):
+                    try:
+                        self.repo.git.worktree('prune')
+                        self.repo.git.worktree('add', path, reference)
+                        return Repo(path)
+                    except GitCommandError as retry_err:
+                        raise ValueError(f"Failed to create worktree after prune: {str(retry_err)}")
                 raise ValueError(f"Failed to create worktree: {str(e)}")
         else:
             return Repo(self.repo_path)

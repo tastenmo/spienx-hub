@@ -45,6 +45,8 @@ class Page(models.Model):
     path = models.CharField(max_length=255)
 
     title = models.CharField(max_length=255)
+
+    jsx_content = models.TextField()
     
     context = models.JSONField(default=dict, blank=True)
         

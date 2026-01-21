@@ -28,8 +28,26 @@ class DjangoJsxOutputImplementation(JsxOutputImplementation):
 
             logging.debug("Finalizing Build for obj: %s ", build)
 
+            logging.debug("Global context: %s ", obj)
+
+            # If obj contains 'global_context', use it directly
+            if isinstance(obj, dict) and "global_context" in obj:
+                build.global_context = obj["global_context"]
+            else:
+                # Extract only JSON-serializable keys to avoid storing Sphinx objects
+                safe_context = {}
+                if isinstance(obj, dict):
+                    # Keep only safe, serializable keys
+                    safe_keys = [
+                        'master_doc', 'root_doc', 'project', 'release', 'version',
+                        'language', 'author', 'copyright', 'extensions', 'templates_path',
+                        'source_suffix', 'exclude_patterns', 'html_theme', 'html_logo'
+                    ]
+                    for key in safe_keys:
+                        if key in obj:
+                            safe_context[key] = obj[key]
+                build.global_context = safe_context
             build.last_build_at = obj.get("last_build_at")
-            build.global_context = obj.get("global_context", {})
             build.save()
         
     def createAsset(self, obj: Any, *args: Any, **kwds: Any) -> None:
@@ -67,7 +85,8 @@ class DjangoJsxOutputImplementation(JsxOutputImplementation):
                 path=page_name,
                 defaults={
                     'title': obj.get("title", ""),
-                    'context': obj.get("context", obj.get("body", {})),
+                    'context': obj.get("context", {}),
+                    'jsx_content': obj.get("body", ""),
                 }
             )
 

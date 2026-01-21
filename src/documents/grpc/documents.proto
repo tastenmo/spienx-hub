@@ -104,7 +104,8 @@ message PageResponse {
     string title = 2;
     optional google.protobuf.Struct context = 3;
     repeated SectionResponse sections = 4;
-    string current_page_name = 5;
+    string path = 6;
+    string jsx_content = 7;
 }
 
 message SectionResponse {

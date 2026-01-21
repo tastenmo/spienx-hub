@@ -34,12 +34,11 @@ class SectionProtoSerializer(proto_serializers.ModelProtoSerializer):
 
 class PageProtoSerializer(proto_serializers.ModelProtoSerializer):
     sections = SectionProtoSerializer(many=True, read_only=True)
-    current_page_name = serializers.CharField(source='path')
 
     class Meta:
         model = Page
         proto_class = documents_pb2.PageResponse
-        fields = ['current_page_name', 'title', 'context', 'sections']
+        fields = ['path', 'title', 'context', 'jsx_content', 'sections']
 
 
 class BuildProtoSerializer(proto_serializers.ModelProtoSerializer):
