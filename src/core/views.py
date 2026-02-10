@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -43,6 +45,19 @@ class AuthTestView(APIView):
             },
             'auth_method': request.auth.__class__.__name__ if request.auth else 'session',
         })
+
+
+class CsrfTokenView(APIView):
+    """
+    Get CSRF token. This sets the CSRF cookie that can be read by JavaScript.
+    
+    GET /api/auth/csrf/
+    """
+    permission_classes = [AllowAny]
+    
+    @method_decorator(ensure_csrf_cookie)
+    def get(self, request):
+        return Response({'detail': 'CSRF cookie set'})
 
 
 class LoginView(APIView):

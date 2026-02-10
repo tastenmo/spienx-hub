@@ -36,13 +36,13 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://hub.tastenmo.de,http://localhost:3000,http://localhost:5173,http://localhost:8000,http://127.0.0.1:8000').split(',')
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'https://hub.tastenmo.de,http://localhost:3000,http://localhost:5173,http://localhost:8000,http://127.0.0.1:8000').split(',')
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://hub.tastenmo.de,http://localhost:3000,http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176,http://localhost:8000,http://127.0.0.1:8000').split(',')
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'https://hub.tastenmo.de,http://localhost:3000,http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176,http://localhost:8000,http://127.0.0.1:8000').split(',')
 CORS_ALLOW_CREDENTIALS = True
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = not DEBUG  # Allow HTTP in development
+SESSION_COOKIE_SECURE = not DEBUG  # Allow HTTP in development
 
 
 # Application definition
@@ -238,4 +238,5 @@ SOCIALACCOUNT_AUTO_SIGNUP = True
 
 SESSION_COOKIE_SAMESITE = 'None'
 CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token
 

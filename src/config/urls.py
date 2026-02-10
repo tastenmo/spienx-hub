@@ -19,12 +19,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from core.views import HealthCheckView, AuthTestView, LoginView, LogoutView, UserView
+from core.views import HealthCheckView, AuthTestView, CsrfTokenView, LoginView, LogoutView, UserView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/health/', HealthCheckView.as_view(), name='health-check'),
     path('api/auth-test/', AuthTestView.as_view(), name='auth-test'),
+    path('api/auth/csrf/', CsrfTokenView.as_view(), name='api-csrf'),
     path('api/auth/login/', LoginView.as_view(), name='api-login'),
     path('api/auth/logout/', LogoutView.as_view(), name='api-logout'),
     path('api/auth/user/', UserView.as_view(), name='api-user'),

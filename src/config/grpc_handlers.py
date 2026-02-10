@@ -14,6 +14,10 @@ from documents.services import (
     BuildReadService,
     DocumentService,
 )
+from accounts.services import (
+    CurrentUserService,
+    CurrentUserProfileService,
+)
 
 
 def grpc_handlers(server):
@@ -38,3 +42,8 @@ def grpc_handlers(server):
     doc_registry = AppHandlerRegistry('documents', server)
     doc_registry.register(BuildReadService, service_file_path='documents.grpc')
     doc_registry.register(DocumentService, service_file_path='documents.grpc')
+
+    # Register accounts app services
+    accounts_registry = AppHandlerRegistry('accounts', server)
+    accounts_registry.register(CurrentUserService, service_file_path='accounts.grpc')
+    accounts_registry.register(CurrentUserProfileService, service_file_path='accounts.grpc')
