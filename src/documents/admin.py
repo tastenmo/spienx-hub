@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Document, Build, Page, Section, ContentBlock
+from .models import Document, Build, Page, Section, ContentBlock, StaticAsset
 
 
 @admin.register(Document)
@@ -33,4 +33,11 @@ class SectionAdmin(admin.ModelAdmin):
 class ContentBlockAdmin(admin.ModelAdmin):
     list_display = ("content_hash",)
     search_fields = ("content_hash",)
+
+
+@admin.register(StaticAsset)
+class StaticAssetAdmin(admin.ModelAdmin):
+    list_display = ("id", "document", "path", "hash", "file")
+    search_fields = ("document__title", "path", "hash")
+    list_filter = ("document",)
 

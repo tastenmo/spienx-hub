@@ -6,6 +6,7 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/struct.proto";
 
 service BuildReadController {
+    rpc GetTableOfContents(BuildReadGetTableOfContentsRequest) returns (BuildReadGetTableOfContentsListResponse) {}
     rpc List(BuildReadListRequest) returns (BuildListResponse) {}
     rpc Retrieve(BuildRetrieveRequest) returns (BuildResponse) {}
     rpc StartBuild(BuildReadStartBuildRequest) returns (BuildResponse) {}
@@ -16,6 +17,7 @@ service DocumentController {
     rpc Create(DocumentRequest) returns (DocumentResponse) {}
     rpc CreateAndStartBuild(DocumentCreateAndStartBuildRequest) returns (BuildResponse) {}
     rpc Destroy(DocumentDestroyRequest) returns (google.protobuf.Empty) {}
+    rpc GetStaticAssetUrl(DocumentGetStaticAssetUrlRequest) returns (DocumentGetStaticAssetUrlResponse) {}
     rpc List(DocumentListRequest) returns (DocumentListResponse) {}
     rpc PartialUpdate(DocumentPartialUpdateRequest) returns (DocumentResponse) {}
     rpc Retrieve(DocumentRetrieveRequest) returns (DocumentResponse) {}
@@ -24,6 +26,29 @@ service DocumentController {
 
 message BuildListResponse {
     repeated BuildResponse results = 1;
+}
+
+message BuildReadGetTableOfContentsListResponse {
+    repeated BuildReadGetTableOfContentsResponse results = 1;
+}
+
+message BuildReadGetTableOfContentsRequest {
+    int64 build_id = 1;
+}
+
+message BuildReadGetTableOfContentsResponse {
+    string id = 1;
+    string title = 2;
+    string page_path = 3;
+    string hash = 4;
+    int32 level = 5;
+    string source_path = 6;
+    int32 start_line = 7;
+    int32 end_line = 8;
+    string parent_hash = 9;
+    int32 order_index = 10;
+    bool can_open_source = 11;
+    bool can_edit = 12;
 }
 
 message BuildReadListRequest {
@@ -68,6 +93,17 @@ message DocumentCreateAndStartBuildRequest {
 
 message DocumentDestroyRequest {
     int64 id = 1;
+}
+
+message DocumentGetStaticAssetUrlRequest {
+    int64 document_id = 1;
+    string relative_path = 2;
+}
+
+message DocumentGetStaticAssetUrlResponse {
+    string path = 1;
+    string url = 2;
+    string hash = 3;
 }
 
 message DocumentListRequest {
@@ -116,5 +152,7 @@ message SectionResponse {
     int32 start_line = 5;
     int32 end_line = 6;
     optional ContentBlockResponse content_block = 7;
+    optional int32 level = 8;
+    optional int32 order_index = 9;
 }
 

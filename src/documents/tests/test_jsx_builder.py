@@ -96,6 +96,29 @@ class TestDjangoJsxOutputImplementation:
         asset = StaticAsset.objects.get(document=document.document, path="_static/style.css")
         assert asset.hash == "abc123def456"
 
+    def test_create_asset_populates_hash_and_file_from_absolute_path(self, document, tmp_path):
+        from documents.models import StaticAsset
+
+        impl = DjangoJsxOutputImplementation()
+
+        image_path = tmp_path / "logo.png"
+        image_path.write_bytes(b"fake image bytes")
+
+        asset_obj = {
+            "path": "_images/logo.png",
+            "filename": "logo.png",
+            "absolute_path": str(image_path),
+        }
+
+        impl.createAsset(asset_obj, docId=document.pk)
+
+        asset = StaticAsset.objects.get(document=document.document, path="_images/logo.png")
+        assert len(asset.hash) == 40
+        assert asset.file.name.endswith(f"{asset.hash}.png")
+        assert asset.file.url.startswith("/static/")
+        with asset.file.open("rb") as file_handle:
+            assert file_handle.read() == b"fake image bytes"
+
     def test_content_block_deduplication_across_pages(self, document):
         """Test that sections with the same hash on different pages share the same ContentBlock"""
         from documents.models import Page, Section, ContentBlock

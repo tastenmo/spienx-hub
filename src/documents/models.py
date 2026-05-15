@@ -1,4 +1,6 @@
 from django.db import models
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.models import User
 
 
@@ -72,6 +74,18 @@ class Section(models.Model):
 
     end_line = models.IntegerField()
 
+    level = models.IntegerField(default=1)
+
+    order_index = models.IntegerField(default=0)
+
+    parent_section = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='children'
+    )
+
     content_block = models.ForeignKey(
             'ContentBlock', 
             on_delete=models.PROTECT, 
@@ -79,6 +93,7 @@ class Section(models.Model):
         )    
     class Meta:
         unique_together = ('page', 'hash')
+        ordering = ['order_index', 'start_line', 'id']
 
     def __str__(self) -> str:
         return f"{self.page.path} - {self.title}"
@@ -96,6 +111,12 @@ class ContentBlock(models.Model):
         return self.content_hash
 
 
+static_asset_storage = FileSystemStorage(
+    location=str(settings.STATIC_ROOT),
+    base_url=settings.STATIC_URL,
+)
+
+
 class StaticAsset(models.Model):
     document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='static_assets')
     
@@ -103,7 +124,7 @@ class StaticAsset(models.Model):
 
     hash = models.CharField(max_length=40)
 
-    file = models.FileField(upload_to='static_assets/')
+    file = models.FileField(upload_to='static_assets/', storage=static_asset_storage)
 
     class Meta:
         unique_together = ('document', 'path')

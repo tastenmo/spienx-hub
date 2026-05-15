@@ -27,3 +27,4 @@ wheels/
 *.sqlite3
 *.db
 .DS_Store
+staticfiles/

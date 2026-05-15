@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import os
 import types
 from os import path
@@ -12,6 +13,7 @@ logger = logging.getLogger(__name__)
 from sphinx.application import Sphinx
 from sphinx.builders.html import BuildInfo
 from jsx_builder.builders import JSXBuilder, JsxOutputImplementation
+from django.core.files import File
 from documents.models import Build, Page, Section, StaticAsset, ContentBlock
 
 class DjangoJsxOutputImplementation(JsxOutputImplementation):
@@ -41,7 +43,8 @@ class DjangoJsxOutputImplementation(JsxOutputImplementation):
                     safe_keys = [
                         'master_doc', 'root_doc', 'project', 'release', 'version',
                         'language', 'author', 'copyright', 'extensions', 'templates_path',
-                        'source_suffix', 'exclude_patterns', 'html_theme', 'html_logo'
+                        'source_suffix', 'exclude_patterns', 'html_theme', 'html_logo',
+                        'toc_pages'
                     ]
                     for key in safe_keys:
                         if key in obj:
@@ -55,16 +58,54 @@ class DjangoJsxOutputImplementation(JsxOutputImplementation):
         if kwds.get("docId"):
             build = Build.objects.get(pk=kwds["docId"])
 
-            logging.debug("Creating StaticAsset for obj: %s ", obj.get("path"))
+            asset_path = obj.get("path", "")
+            absolute_path = obj.get("absolute_path", "")
+            hash_val = obj.get("hash", "")
 
-            # Use update_or_create to avoid duplicates
-            asset, created = StaticAsset.objects.update_or_create(
+            if not asset_path:
+                return
+
+            logging.debug("Creating StaticAsset for obj: %s ", asset_path)
+
+            if not hash_val and absolute_path and path.exists(absolute_path):
+                hash_val = self._sha1_file(absolute_path)
+
+            asset, _ = StaticAsset.objects.get_or_create(
                 document=build.document,
-                path=obj.get("path", ""),
+                path=asset_path,
                 defaults={
-                    'hash': obj.get("hash", ""),
+                    'hash': hash_val,
                 }
             )
+
+            dirty_fields: list[str] = []
+
+            if hash_val and asset.hash != hash_val:
+                asset.hash = hash_val
+                dirty_fields.append("hash")
+
+            if absolute_path and path.exists(absolute_path):
+                ext = path.splitext(obj.get("filename") or path.basename(absolute_path))[1].lower()
+                if not ext:
+                    ext = ".bin"
+                filename = f"{hash_val}{ext}" if hash_val else (obj.get("filename") or path.basename(absolute_path))
+                target_name = f"static_assets/{filename}"
+                if asset.file.storage.exists(target_name):
+                    asset.file.storage.delete(target_name)
+                with open(absolute_path, "rb") as file_handle:
+                    asset.file.save(filename, File(file_handle), save=False)
+                dirty_fields.append("file")
+
+            if dirty_fields:
+                # Use set() to avoid duplicate fields when both hash and file changed.
+                asset.save(update_fields=list(set(dirty_fields)))
+
+    def _sha1_file(self, file_path: str) -> str:
+        sha1 = hashlib.sha1()
+        with open(file_path, "rb") as file_handle:
+            for chunk in iter(lambda: file_handle.read(1024 * 1024), b""):
+                sha1.update(chunk)
+        return sha1.hexdigest()
     
     def createPage(self, obj: Any, *args: Any, **kwds: Any) -> types.NoneType:
         
@@ -96,6 +137,8 @@ class DjangoJsxOutputImplementation(JsxOutputImplementation):
 
                 # Create sections for the page
                 sections = obj.get("section_list", [])
+                sections_by_hash: dict[str, Section] = {}
+                pending_parent_links: list[tuple[Section, str]] = []
                 for section_data in sections:
                     hash_val = section_data.get("hash", "")
                     body = section_data.get("body", "")
@@ -120,9 +163,19 @@ class DjangoJsxOutputImplementation(JsxOutputImplementation):
                             'source_path': section_data.get("source", ""),
                             'start_line': section_data.get("startline", 0) or 0,
                             'end_line': section_data.get("endline", 0) or 0,
+                            'level': section_data.get("level", 1) or 1,
+                            'order_index': section_data.get("order_index", 0) or 0,
                             'content_block': content_block,
                         }
                     )
+                    sections_by_hash[hash_val] = section
+                    pending_parent_links.append((section, section_data.get("parent_hash", "") or ""))
+
+                for section, parent_hash in pending_parent_links:
+                    parent_section = sections_by_hash.get(parent_hash) if parent_hash else None
+                    if section.parent_section_id != (parent_section.id if parent_section else None):
+                        section.parent_section = parent_section
+                        section.save(update_fields=['parent_section'])
 
     def createSection(self, obj: Any, *args: Any, **kwds: Any) -> None:
         pass  # Implement section creation if needed

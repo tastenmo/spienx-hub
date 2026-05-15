@@ -29,7 +29,17 @@ class SectionProtoSerializer(proto_serializers.ModelProtoSerializer):
     class Meta:
         model = Section
         proto_class = documents_pb2.SectionResponse
-        fields = ['title', 'sphinx_id', 'hash', 'source_path', 'start_line', 'end_line', 'content_block']
+        fields = [
+            'title',
+            'sphinx_id',
+            'hash',
+            'source_path',
+            'start_line',
+            'end_line',
+            'content_block',
+            'level',
+            'order_index',
+        ]
 
 
 class PageProtoSerializer(proto_serializers.ModelProtoSerializer):

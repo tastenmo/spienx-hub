@@ -6,7 +6,7 @@ import warnings
 from documents.grpc import documents_pb2 as documents_dot_grpc_dot_documents__pb2
 from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
-GRPC_GENERATED_VERSION = '1.76.0'
+GRPC_GENERATED_VERSION = '1.80.0'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -35,6 +35,11 @@ class BuildReadControllerStub(object):
         Args:
             channel: A grpc.Channel.
         """
+        self.GetTableOfContents = channel.unary_unary(
+                '/config.documents.BuildReadController/GetTableOfContents',
+                request_serializer=documents_dot_grpc_dot_documents__pb2.BuildReadGetTableOfContentsRequest.SerializeToString,
+                response_deserializer=documents_dot_grpc_dot_documents__pb2.BuildReadGetTableOfContentsListResponse.FromString,
+                _registered_method=True)
         self.List = channel.unary_unary(
                 '/config.documents.BuildReadController/List',
                 request_serializer=documents_dot_grpc_dot_documents__pb2.BuildReadListRequest.SerializeToString,
@@ -59,6 +64,12 @@ class BuildReadControllerStub(object):
 
 class BuildReadControllerServicer(object):
     """Missing associated documentation comment in .proto file."""
+
+    def GetTableOfContents(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
 
     def List(self, request, context):
         """Missing associated documentation comment in .proto file."""
@@ -87,6 +98,11 @@ class BuildReadControllerServicer(object):
 
 def add_BuildReadControllerServicer_to_server(servicer, server):
     rpc_method_handlers = {
+            'GetTableOfContents': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetTableOfContents,
+                    request_deserializer=documents_dot_grpc_dot_documents__pb2.BuildReadGetTableOfContentsRequest.FromString,
+                    response_serializer=documents_dot_grpc_dot_documents__pb2.BuildReadGetTableOfContentsListResponse.SerializeToString,
+            ),
             'List': grpc.unary_unary_rpc_method_handler(
                     servicer.List,
                     request_deserializer=documents_dot_grpc_dot_documents__pb2.BuildReadListRequest.FromString,
@@ -117,6 +133,33 @@ def add_BuildReadControllerServicer_to_server(servicer, server):
  # This class is part of an EXPERIMENTAL API.
 class BuildReadController(object):
     """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def GetTableOfContents(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.documents.BuildReadController/GetTableOfContents',
+            documents_dot_grpc_dot_documents__pb2.BuildReadGetTableOfContentsRequest.SerializeToString,
+            documents_dot_grpc_dot_documents__pb2.BuildReadGetTableOfContentsListResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
 
     @staticmethod
     def List(request,
@@ -251,6 +294,11 @@ class DocumentControllerStub(object):
                 request_serializer=documents_dot_grpc_dot_documents__pb2.DocumentDestroyRequest.SerializeToString,
                 response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
                 _registered_method=True)
+        self.GetStaticAssetUrl = channel.unary_unary(
+                '/config.documents.DocumentController/GetStaticAssetUrl',
+                request_serializer=documents_dot_grpc_dot_documents__pb2.DocumentGetStaticAssetUrlRequest.SerializeToString,
+                response_deserializer=documents_dot_grpc_dot_documents__pb2.DocumentGetStaticAssetUrlResponse.FromString,
+                _registered_method=True)
         self.List = channel.unary_unary(
                 '/config.documents.DocumentController/List',
                 request_serializer=documents_dot_grpc_dot_documents__pb2.DocumentListRequest.SerializeToString,
@@ -289,6 +337,12 @@ class DocumentControllerServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def Destroy(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetStaticAssetUrl(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -335,6 +389,11 @@ def add_DocumentControllerServicer_to_server(servicer, server):
                     servicer.Destroy,
                     request_deserializer=documents_dot_grpc_dot_documents__pb2.DocumentDestroyRequest.FromString,
                     response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            ),
+            'GetStaticAssetUrl': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetStaticAssetUrl,
+                    request_deserializer=documents_dot_grpc_dot_documents__pb2.DocumentGetStaticAssetUrlRequest.FromString,
+                    response_serializer=documents_dot_grpc_dot_documents__pb2.DocumentGetStaticAssetUrlResponse.SerializeToString,
             ),
             'List': grpc.unary_unary_rpc_method_handler(
                     servicer.List,
@@ -438,6 +497,33 @@ class DocumentController(object):
             '/config.documents.DocumentController/Destroy',
             documents_dot_grpc_dot_documents__pb2.DocumentDestroyRequest.SerializeToString,
             google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetStaticAssetUrl(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/config.documents.DocumentController/GetStaticAssetUrl',
+            documents_dot_grpc_dot_documents__pb2.DocumentGetStaticAssetUrlRequest.SerializeToString,
+            documents_dot_grpc_dot_documents__pb2.DocumentGetStaticAssetUrlResponse.FromString,
             options,
             channel_credentials,
             insecure,
