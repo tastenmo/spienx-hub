@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+from urllib.parse import quote
 
 from django.db import models
 from django.core.exceptions import ValidationError
@@ -54,10 +56,13 @@ class GitRepository(models.Model):
         return f"{self.organisation.name}/{self.name}"
     
     @property
-    def git_url(self):
+    def git_url(self) -> str:
         """Returns the Git clone URL for this repository"""
         domain = settings.GIT_DOMAIN
-        return f"https://{domain}/git/{self.organisation.name}/{self.name}.git"
+        repository_path = Path(os.path.abspath(self.local_path)).relative_to(
+            os.path.abspath(settings.GIT_REPOS_DIR)
+        )
+        return f"https://{domain}/git/{quote(repository_path.as_posix())}"
 
     def effective_permission(self, user) -> str:
         """Compute highest permission (none/read/write/admin) for a given user on this repo."""

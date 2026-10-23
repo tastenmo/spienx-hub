@@ -1,6 +1,8 @@
+import logging
 import os
 import subprocess
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 from django.conf import settings
 from django.db.models import Q
 from django_socio_grpc import generics
@@ -19,6 +21,12 @@ from asgiref.sync import sync_to_async
 from accounts.models import Organisation, OrganisationMembership, TeamMembership
 import grpc
 
+if TYPE_CHECKING:
+    from django_socio_grpc.request_transformer.grpc_internal_proxy import GRPCInternalProxyContext
+    from django_socio_grpc.services.base_service import Service
+
+logger = logging.getLogger(__name__)
+
 
 # ============================================================================
 # PERMISSIONS
@@ -27,22 +35,31 @@ import grpc
 class RepositoryPermission(GRPCActionBasePermission):
     """Permission class for repository operations"""
 
-    def has_permission(self, context, service):
+    def has_permission(self, context: 'GRPCInternalProxyContext', service: 'Service') -> bool:
         """Check if user has access to list/retrieve"""
-        if not context.user or not context.user.is_authenticated:
-            return False
-
-        # Superusers can do everything
-        if getattr(context.user, 'is_superuser', False):
-            return True
-
-        # Read operations allowed for authenticated users
+        user = context.user
+        is_authenticated = bool(user and user.is_authenticated)
+        is_superuser = bool(getattr(user, 'is_superuser', False))
         action = getattr(service, 'action', 'unknown')
-        if action in ['list', 'retrieve']:
-            return True
+        allowed = is_authenticated and (
+            is_superuser or action in ['list', 'retrieve']
+        )
 
-        # Write operations require superuser
-        return False
+        if isinstance(service, GitRepositoryService) and action == 'List':
+            log = logger.info if allowed else logger.warning
+            log(
+                'gRPC permission check controller=%s action=%s '
+                'permission=%s.%s is_authenticated=%s is_superuser=%s allowed=%s',
+                service.get_controller_name(),
+                action,
+                type(self).__module__,
+                type(self).__name__,
+                is_authenticated,
+                is_superuser,
+                allowed,
+            )
+
+        return allowed
 
     def has_object_permission(self, context, service, obj):
         """Check if user has access to specific object"""
@@ -451,7 +468,6 @@ class TaskStatusService(generics.GenericService):
             return repositories_pb2.RepositoryTasksResponse(task_count=task_count)
         except GitRepository.DoesNotExist:
             context.abort(grpc.StatusCode.NOT_FOUND, f"Repository {request.repository_id} not found")
-
 
 
 

@@ -170,3 +170,29 @@ Create tests using `FakeFullAIOGRPC` to verify your service without spinning up 
                 self.assertTrue(len(response.results) > 0)
             
             async_to_sync(run_test)()
+
+Diagnosing repository list permissions
+--------------------------------------
+
+``GitRepositoryController.List`` logs its permission decision in
+``repositories.services``: the controller, action, permission class,
+``is_authenticated``, ``is_superuser``, and ``allowed``. Denials are logged
+at WARNING and successful checks at INFO; no cookies or credentials are logged.
+
+After restarting the web service, reproduce the frontend request and inspect:
+
+.. code-block:: bash
+
+    docker compose logs --since=2m web
+
+An unauthenticated result means the gRPC request did not resolve to a logged-in
+user, even if the browser has an authenticated Django admin session. An
+authenticated non-superuser can also be denied by the current policy: it checks
+lowercase ``list``/``retrieve`` while RPC actions are named ``List``/``Retrieve``.
+Authenticated superusers bypass that action check.
+
+``core.authentication`` also logs why session authentication failed, without
+logging cookie values: ``missing_cookie_header``, ``missing_session_cookie``,
+``session_not_found``, ``missing_session_user``, ``user_not_found``, or
+``inactive_user``. These distinguish a browser credential-forwarding problem
+from a session lookup problem.

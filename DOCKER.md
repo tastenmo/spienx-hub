@@ -201,13 +201,27 @@ docker compose up -d --build web celery celery-beat
 docker compose exec web poetry run python manage.py collectstatic --noinput
 ```
 
-Install the Nginx location snippet and collected static files on the Docker host:
+Install the Nginx location snippet on the Docker host:
 
 ```bash
-sudo install -d /etc/nginx/snippets /var/www/spienx-hub/staticfiles
+sudo install -d /etc/nginx/snippets
 sudo install -m 644 nginx/forge-hub.conf /etc/nginx/snippets/forge-hub.conf
-sudo cp -R staticfiles/. /var/www/spienx-hub/staticfiles/
 ```
+
+Nginx serves collected static files directly from
+`/home/heubuchm/spienx/spienx-hub/staticfiles/`; no copy is needed. The
+`www-data` worker must be able to traverse every parent directory and read the
+static files. On this host, the home directory blocks traversal. Grant only
+traversal access to that directory (install `acl` if `setfacl` is unavailable):
+
+```bash
+sudo apt-get install acl
+setfacl -m u:www-data:--x /home/heubuchm
+sudo -u www-data test -r /home/heubuchm/spienx/spienx-hub/staticfiles/admin/css/base.css
+```
+
+This does not grant home-directory listing access. The remaining parent
+directories and collected static files already allow traversal/read access.
 
 Inside the existing **HTTPS server block** in
 `/etc/nginx/sites-available/forge.escad.de.conf`, add:
@@ -219,9 +233,66 @@ include /etc/nginx/snippets/forge-hub.conf;
 The snippet uses the existing `$connection_upgrade_keepalive` map. It leaves
 the other applications on this host unchanged, strips `/hub/` before proxying
 to Django on port 8001, and forwards Git FastCGI requests to port 9002.
-Django generates prefixed admin and static URLs. Refresh the copied static
-files after subsequent `collectstatic` runs. Uploaded media is not served by
-this snippet.
+Django generates prefixed admin and static URLs. Subsequent `collectstatic`
+runs update the files served by Nginx directly. Uploaded media is not served
+by this snippet.
+
+Git clone URLs use the repository's actual path relative to `GIT_REPOS_DIR`.
+For example, `/git/simatic/CodingGuidelines` is available at
+`https://forge.escad.de/hub/git/simatic/CodingGuidelines`, without `.git`.
+A `.git` suffix is included only when it is part of the stored directory name.
+Refresh repository details in the frontend to obtain corrected clone URLs.
+
+### Git HTTP authentication
+
+The Git route requires HTTP Basic authentication for both clone and push.
+These credentials are separate from Django accounts. Every user in the Git
+credential file can read and push to every repository served by this route;
+Django organisation and repository permissions are not evaluated.
+
+Install `apache2-utils` on the Nginx host if `htpasswd` is not available:
+
+```bash
+sudo apt-get install apache2-utils
+```
+
+Create the credential file (only use `-c` when creating a new file). The
+password is prompted interactively; do not put it in a command or Git URL:
+
+```bash
+sudo htpasswd -cB /etc/nginx/git.htpasswd gitadmin
+sudo chown root:www-data /etc/nginx/git.htpasswd
+sudo chmod 640 /etc/nginx/git.htpasswd
+```
+
+Use `sudo htpasswd -B /etc/nginx/git.htpasswd another-user` to add or update
+users without overwriting the file. The group above matches this host's Nginx
+worker user; adjust it if deploying elsewhere.
+
+Deploy the updated snippet and recreate the web service to bind FastCGI only
+to loopback, preventing direct network access that bypasses Nginx:
+
+```bash
+sudo install -m 644 nginx/forge-hub.conf /etc/nginx/snippets/forge-hub.conf
+docker compose up -d --no-deps web
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+Nginx passes the verified username as `REMOTE_USER`, which enables Git's
+default authenticated receive-pack behavior. Do not enable anonymous push
+with `http.receivepack=true`.
+
+Verify discovery without modifying the repository:
+
+```bash
+curl -i 'https://forge.escad.de/hub/git/simatic/CodingGuidelines/info/refs?service=git-receive-pack'
+curl -u gitadmin -i 'https://forge.escad.de/hub/git/simatic/CodingGuidelines/info/refs?service=git-receive-pack'
+```
+
+The first request must return 401 with a Basic authentication challenge; the
+second prompts for the Git password and should return 200 with content type
+`application/x-git-receive-pack-advertisement`. Then retry `git push`; use
+the Git username/password when prompted, not the Django admin credentials.
 
 Validate before reloading:
 

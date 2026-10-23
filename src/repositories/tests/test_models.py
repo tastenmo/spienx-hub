@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.contrib.auth.models import User
 from repositories.models import GitRepository, GitMirrorRepository, SyncTask
 from accounts.models import Organisation, UserProfile
@@ -76,7 +76,8 @@ class GitRepositoryModelTest(TestCase):
                 local_path='/git/test-org/other-unique-repo'
             )
 
-    def test_git_url_property(self):
+    @override_settings(GIT_DOMAIN='forge.escad.de/hub', GIT_REPOS_DIR='/git')
+    def test_git_url_property(self) -> None:
         """Test git_url property returns correct URL"""
         repo = GitRepository.objects.create(
             name='test-repo',
@@ -84,8 +85,27 @@ class GitRepositoryModelTest(TestCase):
             local_path='/git/test-org/test-repo'
         )
 
-        self.assertIn('test-repo.git', repo.git_url)
-        self.assertIn(self.org.name, repo.git_url)
+        self.assertEqual(
+            repo.git_url, 'https://forge.escad.de/hub/git/test-org/test-repo'
+        )
+
+    @override_settings(GIT_DOMAIN='forge.escad.de/hub', GIT_REPOS_DIR='/git')
+    def test_git_url_uses_actual_storage_path(self) -> None:
+        for path in ['42/repo', 'test-org/repo.git', 'test-org/repo name']:
+            with self.subTest(path=path):
+                repo = GitRepository(name='Display Name', local_path=f'/git/{path}')
+                self.assertEqual(
+                    repo.git_url,
+                    f'https://forge.escad.de/hub/git/{path.replace(" ", "%20")}',
+                )
+
+    @override_settings(GIT_REPOS_DIR='/git')
+    def test_git_url_rejects_path_outside_project_root(self) -> None:
+        for path in ['/other/repo', '/git/../other/repo']:
+            with self.subTest(path=path):
+                repo = GitRepository(name='repo', local_path=path)
+                with self.assertRaises(ValueError):
+                    _ = repo.git_url
 
     def test_create_workdir_with_bare_repository(self):
         """Test creating a working directory from a bare repository"""

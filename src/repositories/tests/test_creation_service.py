@@ -58,7 +58,7 @@ class TestGitRepositoryCreationService(TestCase):
                 
                 self.assertTrue(response.local_path.endswith('new-repo'))
                 self.assertIsNotNone(response.id)
-                self.assertIn('new-repo.git', response.git_url)
+                self.assertTrue(response.git_url.endswith('/git/test-org/new-repo'))
                 
                 repo = await GitRepository.objects.aget(id=response.id)
                 self.assertEqual(repo.name, "new-repo")
