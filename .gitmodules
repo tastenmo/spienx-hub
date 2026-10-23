@@ -1,0 +1,3 @@
+[submodule "spienx-proto"]
+	path = spienx-proto
+	url = https://github.com/tastenmo/spienx-proto.git
