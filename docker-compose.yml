@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -41,17 +39,21 @@ services:
     environment:
       DEBUG: ${DEBUG:-False}
       SECRET_KEY: ${SECRET_KEY:-django-insecure-change-me-in-production}
-      ALLOWED_HOSTS: localhost,127.0.0.1,web,spienx-web,hub.tastenmo.de
+      ALLOWED_HOSTS: localhost,127.0.0.1,web,spienx-web,hub.tastenmo.de,forge.escad.de
+      FORCE_SCRIPT_NAME: ${FORCE_SCRIPT_NAME:-}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-https://hub.tastenmo.de,https://forge.escad.de,http://localhost:3000,http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176,http://localhost:8000,http://127.0.0.1:8000}
+      GIT_DOMAIN: ${GIT_DOMAIN:-hub.tastenmo.de}
       DATABASE_URL: postgresql://${POSTGRES_USER:-spienx}:${POSTGRES_PASSWORD:-spienx_password}@postgres:5432/${POSTGRES_DB:-spienx_db}
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
     ports:
       - "8001:8000"
-      - "9001:9001"
+      - "9002:9001"
     volumes:
       - .:/app
       - git_repos:/git
       - ../jsx-builder:/jsx-builder
+      - ../django-socio-grpc:/django-socio-grpc
     working_dir: /app/src
     depends_on:
       postgres:
@@ -61,7 +63,7 @@ services:
     command: >
       sh -c "spawn-fcgi -p 9001 -n /usr/sbin/fcgiwrap &
              poetry run python manage.py migrate &&
-             poetry run daphne -b 0.0.0.0 -p 8000 config.asgi:application"
+             poetry run daphne -b 0.0.0.0 -p 8000 --root-path '${FORCE_SCRIPT_NAME:-}' config.asgi:application"
     networks:
       - spienx-network
 
@@ -74,6 +76,8 @@ services:
       DEBUG: ${DEBUG:-False}
       SECRET_KEY: ${SECRET_KEY:-django-insecure-change-me-in-production}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,web}
+      FORCE_SCRIPT_NAME: ${FORCE_SCRIPT_NAME:-}
+      GIT_DOMAIN: ${GIT_DOMAIN:-hub.tastenmo.de}
       DATABASE_URL: postgresql://${POSTGRES_USER:-spienx}:${POSTGRES_PASSWORD:-spienx_password}@postgres:5432/${POSTGRES_DB:-spienx_db}
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
@@ -81,6 +85,7 @@ services:
       - .:/app
       - git_repos:/git
       - ../jsx-builder:/jsx-builder
+      - ../django-socio-grpc:/django-socio-grpc
     working_dir: /app/src
     command: poetry run celery -A config worker -l info
     networks:
@@ -95,6 +100,8 @@ services:
       DEBUG: ${DEBUG:-False}
       SECRET_KEY: ${SECRET_KEY:-django-insecure-change-me-in-production}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,web}
+      FORCE_SCRIPT_NAME: ${FORCE_SCRIPT_NAME:-}
+      GIT_DOMAIN: ${GIT_DOMAIN:-hub.tastenmo.de}
       DATABASE_URL: postgresql://${POSTGRES_USER:-spienx}:${POSTGRES_PASSWORD:-spienx_password}@postgres:5432/${POSTGRES_DB:-spienx_db}
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
@@ -102,6 +109,7 @@ services:
       - .:/app
       - git_repos:/git
       - ../jsx-builder:/jsx-builder
+      - ../django-socio-grpc:/django-socio-grpc
     working_dir: /app/src
     command: poetry run celery -A config beat -l info
     networks:
@@ -116,4 +124,3 @@ volumes:
 networks:
   spienx-network:
     driver: bridge
-

@@ -91,7 +91,36 @@ Run the management command to generate the `.proto` definitions and the correspo
     cd src
     poetry run python manage.py generateproto
 
-This will create/update the `src/myapp/grpc/` directory.
+Definitions are stored in the ``spienx-proto`` Git submodule at
+``spienx-proto/<app>/grpc/<app>.proto``. Initialize it from the repository
+root before generation or Docker builds:
+
+.. code-block:: bash
+
+    git submodule update --init --recursive
+
+The ``src/<app>/grpc/<app>.proto`` paths are relative symlinks to the shared
+definitions. The normal generation command writes through these symlinks and
+keeps Python stubs in ``src/<app>/grpc/``, preserving existing imports and
+protobuf field numbering. Do not replace the symlinks with copies.
+
+For a new app, prepare its shared definition and symlink from the repository
+root before running generation:
+
+.. code-block:: bash
+
+    mkdir -p spienx-proto/myapp/grpc src/myapp/grpc
+    touch spienx-proto/myapp/grpc/myapp.proto
+    ln -s ../../../spienx-proto/myapp/grpc/myapp.proto src/myapp/grpc/myapp.proto
+
+Commit and push definition changes in the submodule first, then commit its
+updated pointer alongside service changes and generated Python stubs in
+``spienx-hub``. Review both repositories before committing:
+
+.. code-block:: bash
+
+    git -C spienx-proto diff
+    git diff --submodule
 
 6. Link Serializer to Proto Classes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -141,4 +170,3 @@ Create tests using `FakeFullAIOGRPC` to verify your service without spinning up 
                 self.assertTrue(len(response.results) > 0)
             
             async_to_sync(run_test)()
-

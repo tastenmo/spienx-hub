@@ -5,7 +5,7 @@ FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    POETRY_VERSION=1.7.1 \
+    POETRY_VERSION=2.2.1 \
     POETRY_VIRTUALENVS_CREATE=false \
     PYTHONPATH=/app/src
 
@@ -33,12 +33,13 @@ WORKDIR /app
 
 # Copy jsx-builder dependency
 COPY jsx-builder /jsx-builder
+COPY django-socio-grpc /django-socio-grpc
 
 # Copy project files
 COPY spienx-hub /app
 
 # Install project dependencies
-RUN poetry install --no-interaction --no-ansi
+RUN poetry install --no-root --no-interaction --no-ansi
 
 # Expose port for Django
 EXPOSE 8000

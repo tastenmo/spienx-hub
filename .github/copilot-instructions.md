@@ -25,8 +25,12 @@ You are an expert Python developer. Adhere strictly to the following project rul
 
 ## 5. Proto workflow
 - Never hand-edit generated proto or stub files. Use the provided workflow instead.
-- Generate/refresh protos with `poetry run python manage.py generateproto` (or `./manage.sh generateproto`) from `src/`.
+- Initialize the shared definitions with `git submodule update --init --recursive` before generating protos or building Docker images.
+- All `.proto` definitions live in the `spienx-proto/` Git submodule, under `<app>/grpc/<app>.proto`. The paths in `src/<app>/grpc/` are symlinks; preserve them rather than replacing them with copies.
+- Generate/refresh protos with `poetry run python manage.py generateproto` from `src/`, or `./manage.sh generateproto` from the repository root. Generation writes through the symlinks into the submodule; Python stubs remain in `src/<app>/grpc/`.
 - If a proto change is needed, adjust the service/serializer code, then regenerate; do not edit `.proto`/`_pb2.py`/`_pb2_grpc.py` directly.
+- For a new app, create its target directory and initial empty proto file in `spienx-proto/<app>/grpc/`, then create the matching relative symlink in `src/<app>/grpc/` before generation.
+- Commit and push proto changes in `spienx-proto` first, then commit the updated submodule pointer together with service/serializer and Python stub changes in this repository.
 
 ## 6. Constraint Awareness
 - Before generating code or suggesting commands, check `pyproject.toml` to verify installed versions and Python constraints.

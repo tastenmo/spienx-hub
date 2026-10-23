@@ -36,6 +36,8 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
+FORCE_SCRIPT_NAME = os.getenv('FORCE_SCRIPT_NAME') or None
+
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://hub.tastenmo.de,http://localhost:3000,http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176,http://localhost:8000,http://127.0.0.1:8000').split(',')
 CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'https://hub.tastenmo.de,http://localhost:3000,http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176,http://localhost:8000,http://127.0.0.1:8000').split(',')
 CORS_ALLOW_CREDENTIALS = True
@@ -174,11 +176,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = f"{FORCE_SCRIPT_NAME or ''}/static/"
 STATIC_ROOT = BASE_DIR.parent / 'staticfiles'
 
 # Media files (uploads)
-MEDIA_URL = '/media/'
+MEDIA_URL = f"{FORCE_SCRIPT_NAME or ''}/media/"
 MEDIA_ROOT = BASE_DIR.parent / 'media'
 
 # Default primary key field type
@@ -239,4 +241,3 @@ SOCIALACCOUNT_AUTO_SIGNUP = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token
-
